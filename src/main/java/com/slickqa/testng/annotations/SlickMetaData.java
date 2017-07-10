@@ -15,6 +15,7 @@ public @interface SlickMetaData {
     String value = "";
 
     String title();
+    String purpose() default value;
     String component() default value;
     String feature() default value;
     String automationId() default value;

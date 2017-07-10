@@ -9,9 +9,15 @@ import com.slickqa.client.SlickClientFactory;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.JsonUtil;
 import com.slickqa.client.model.*;
-import com.slickqa.testng.annotations.SlickMetaData;
-//import org.junit.runner.Description;
+import com.slickqa.client.model.Step;
+import com.slickqa.testng.annotations.*;
+import org.testng.annotations.Test;
+import org.testng.internal.ClassHelper;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlTest;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -28,7 +34,7 @@ public class SlickTestNGController {
 
     protected Map<String, Result> results;
 
-    protected SlickTestNGController() {
+    public SlickTestNGController() {
         usingSlick = false;
         configurationSource = initializeConfigurationSource();
         results = new HashMap<>();
@@ -154,163 +160,166 @@ public class SlickTestNGController {
         }
     }
 
-//    public String getAutomationId(Description testDescription) {
-//        String automationId = null;
-//        try {
-//            SlickMetaData metaData = testDescription.getAnnotation(SlickMetaData.class);
-//            if(metaData != null && metaData.automationId() != null && !"".equals(metaData.automationId())) {
-//                automationId = metaData.automationId();
-//            }
-//        } catch (RuntimeException e) {
-//            // ignore
-//        }
-//        if(automationId == null) {
-//            automationId = testDescription.getClassName() + ":" + testDescription.getMethodName();
-//        }
-//
-//        return automationId;
-//    }
+    public String getAutomationId(Method testMethod) {
+        String automationId = null;
+        try {
+            SlickMetaData metaData = testMethod.getAnnotation(SlickMetaData.class);
+            if(metaData != null && metaData.automationId() != null && !"".equals(metaData.automationId())) {
+                automationId = metaData.automationId();
+            }
+        } catch (RuntimeException e) {
+            // ignore
+        }
+        if(automationId == null) {
+            automationId = testMethod.getDeclaringClass().getName() + ":" + testMethod.getName();
+        }
 
-//    public void addResultFor(Description testDescription) throws SlickError {
-//        if(isUsingSlick() && testDescription.isTest()) {
-//            SlickMetaData metaData = testDescription.getAnnotation(SlickMetaData.class);
-//            if(metaData != null) {
-//                String automationId = getAutomationId(testDescription);
-//                Testcase testcase = null;
-//
-//                HashMap<String, String> query = new HashMap<>();
-//                query.put("project.id", project.getId());
-//                query.put("automationId", automationId);
-//                ProjectReference projectReference = new ProjectReference();
-//                projectReference.setName(project.getName());
-//                projectReference.setId(project.getId());
-//
-//                try {
-//                    List<Testcase> testcases = slickClient.testcases(query).getList();
-//                    if(testcases != null && testcases.size() > 0) {
-//                        testcase = testcases.get(0);
-//                    }
-//                } catch (SlickError e) {
-//                    // ignore
-//                }
-//
-//                if(testcase == null) {
-//                    testcase = new Testcase();
-//                    testcase.setName(metaData.title());
-//                    testcase.setProject(projectReference);
-//                    testcase = slickClient.testcases().create(testcase);
-//                }
-//
-//                testcase.setName(metaData.title());
-//                testcase.setAutomated(true);
-//                testcase.setAutomationId(automationId);
-//                testcase.setAutomationKey(getValueOrNullIfEmpty(metaData.automationKey()));
-//                testcase.setAutomationTool("junit");
-//                ComponentReference componentReference = null;
-//                Component component = null;
-//                if(metaData.component() != null && !"".equals(metaData.component())) {
-//                    componentReference = new ComponentReference();
-//                    componentReference.setName(metaData.component());
-//                    if(project.getComponents() != null) {
-//                        for (Component possible : project.getComponents()) {
-//                            if (metaData.component().equals(possible.getName())) {
-//                                componentReference.setId(possible.getId());
-//                                componentReference.setCode(possible.getCode());
-//                                component = possible;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if(componentReference.getId() == null) {
-//                        component = new Component();
-//                        component.setName(metaData.component());
-//                        try {
-//                            component = slickClient.project(project.getId()).components().create(component);
-//                            componentReference.setId(component.getId());
-//                            project = slickClient.project(project.getId()).get();
-//                        } catch (SlickError e) {
-//                            component = null;
-//                            componentReference = null;
-//                        }
-//                    }
-//                }
-//                testcase.setComponent(componentReference);
-//                FeatureReference featureReference = null;
-//                if(metaData.feature() != null && !"".equals(metaData.feature()) && component != null) {
-//                    featureReference = new FeatureReference();
-//                    featureReference.setName(metaData.feature());
-//                    Feature feature = null;
-//                    if(component.getFeatures() != null) {
-//                        for(Feature possible: component.getFeatures()) {
-//                            if(metaData.feature().equals(possible.getName())) {
-//                                featureReference.setId(possible.getId());
-//                                feature = possible;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if(feature == null) {
-//                        feature = new Feature();
-//                        feature.setName(metaData.feature());
-//                        if(component.getFeatures() == null) {
-//                            component.setFeatures(new ArrayList<Feature>(1));
-//                        }
-//                        component.getFeatures().add(feature);
-//                        try {
-//                            component = slickClient.project(project.getId()).component(component.getId()).update(component);
-//                            project = slickClient.project(project.getId()).get();
-//                            if(component.getFeatures() != null) {
-//                                for(Feature possible: component.getFeatures()) {
-//                                    if(metaData.feature().equals(possible.getName())) {
-//                                        featureReference.setId(feature.getId());
-//                                    }
-//                                }
-//
-//                            } else {
-//                                // this shouldn't be possible which probably means it'll happen
-//                                feature = null;
-//                                featureReference = null;
-//                            }
-//                        } catch (SlickError e) {
-//                            feature = null;
-//                            featureReference = null;
-//                        }
-//                    }
-//                }
-//                testcase.setFeature(featureReference);
-//                if(metaData.steps() != null && metaData.steps().length > 0) {
-//                    testcase.setSteps(new ArrayList<Step>(metaData.steps().length));
-//                    for(com.slickqa.junit.annotations.Step metaStep : metaData.steps()) {
-//                        Step slickStep = new Step();
-//                        slickStep.setName(metaStep.step());
-//                        slickStep.setExpectedResult(metaStep.expectation());
-//                        testcase.getSteps().add(slickStep);
-//                    }
-//                }
-//                testcase = slickClient.testcase(testcase.getId()).update(testcase);
-//                TestcaseReference testReference = new TestcaseReference();
-//                testReference.setName(testcase.getName());
-//                testReference.setAutomationId(testcase.getAutomationId());
-//                testReference.setAutomationKey(testcase.getAutomationKey());
-//                testReference.setTestcaseId(testcase.getId());
-//                testReference.setAutomationTool(testcase.getAutomationTool());
-//
-//                TestrunReference testrunReference = new TestrunReference();
-//                testrunReference.setName(testrun.getName());
-//                testrunReference.setTestrunId(testrun.getId());
-//
-//                Result result = new Result();
-//                result.setProject(projectReference);
-//                result.setTestrun(testrunReference);
-//                result.setTestcase(testReference);
-//                result.setStatus("NO_RESULT");
-//                result.setReason("not run yet...");
-//                result.setRecorded(new Date());
-//                result = slickClient.results().create(result);
-//                results.put(automationId, result);
-//            }
-//        }
-//    }
+        return automationId;
+    }
+
+    public void addResultFor(Method testMethod) throws SlickError {
+        if(isUsingSlick()) {
+            if (isUsingSlick()) {
+                SlickMetaData metaData = testMethod.getAnnotation(SlickMetaData.class);
+                if (metaData != null) {
+                    String automationId = getAutomationId(testMethod);
+                    Testcase testcase = null;
+
+                    HashMap<String, String> query = new HashMap<>();
+                    query.put("project.id", project.getId());
+                    query.put("automationId", automationId);
+                    ProjectReference projectReference = new ProjectReference();
+                    projectReference.setName(project.getName());
+                    projectReference.setId(project.getId());
+
+                    try {
+                        List<Testcase> testcases = slickClient.testcases(query).getList();
+                        if (testcases != null && testcases.size() > 0) {
+                            testcase = testcases.get(0);
+                        }
+                    } catch (SlickError e) {
+                        // ignore
+                    }
+
+                    if (testcase == null) {
+                        testcase = new Testcase();
+                        testcase.setName(metaData.title());
+                        testcase.setProject(projectReference);
+                        testcase = slickClient.testcases().create(testcase);
+                    }
+
+                    testcase.setName(metaData.title());
+                    testcase.setAutomated(true);
+                    testcase.setAutomationId(automationId);
+                    testcase.setAutomationKey(getValueOrNullIfEmpty(metaData.automationKey()));
+                    testcase.setAutomationTool("testng");
+                    testcase.setPurpose(metaData.purpose());
+                    ComponentReference componentReference = null;
+                    Component component = null;
+                    if (metaData.component() != null && !"".equals(metaData.component())) {
+                        componentReference = new ComponentReference();
+                        componentReference.setName(metaData.component());
+                        if (project.getComponents() != null) {
+                            for (Component possible : project.getComponents()) {
+                                if (metaData.component().equals(possible.getName())) {
+                                    componentReference.setId(possible.getId());
+                                    componentReference.setCode(possible.getCode());
+                                    component = possible;
+                                    break;
+                                }
+                            }
+                        }
+                        if (componentReference.getId() == null) {
+                            component = new Component();
+                            component.setName(metaData.component());
+                            try {
+                                component = slickClient.project(project.getId()).components().create(component);
+                                componentReference.setId(component.getId());
+                                project = slickClient.project(project.getId()).get();
+                            } catch (SlickError e) {
+                                component = null;
+                                componentReference = null;
+                            }
+                        }
+                    }
+                    testcase.setComponent(componentReference);
+                    FeatureReference featureReference = null;
+                    if (metaData.feature() != null && !"".equals(metaData.feature()) && component != null) {
+                        featureReference = new FeatureReference();
+                        featureReference.setName(metaData.feature());
+                        Feature feature = null;
+                        if (component.getFeatures() != null) {
+                            for (Feature possible : component.getFeatures()) {
+                                if (metaData.feature().equals(possible.getName())) {
+                                    featureReference.setId(possible.getId());
+                                    feature = possible;
+                                    break;
+                                }
+                            }
+                        }
+                        if (feature == null) {
+                            feature = new Feature();
+                            feature.setName(metaData.feature());
+                            if (component.getFeatures() == null) {
+                                component.setFeatures(new ArrayList<Feature>(1));
+                            }
+                            component.getFeatures().add(feature);
+                            try {
+                                component = slickClient.project(project.getId()).component(component.getId()).update(component);
+                                project = slickClient.project(project.getId()).get();
+                                if (component.getFeatures() != null) {
+                                    for (Feature possible : component.getFeatures()) {
+                                        if (metaData.feature().equals(possible.getName())) {
+                                            featureReference.setId(feature.getId());
+                                        }
+                                    }
+
+                                } else {
+                                    // this shouldn't be possible which probably means it'll happen
+                                    feature = null;
+                                    featureReference = null;
+                                }
+                            } catch (SlickError e) {
+                                feature = null;
+                                featureReference = null;
+                            }
+                        }
+                    }
+                    testcase.setFeature(featureReference);
+                    if (metaData.steps() != null && metaData.steps().length > 0) {
+                        testcase.setSteps(new ArrayList<Step>(metaData.steps().length));
+                        for (com.slickqa.testng.annotations.Step metaStep : metaData.steps()) {
+                            Step slickStep = new Step();
+                            slickStep.setName(metaStep.step());
+                            slickStep.setExpectedResult(metaStep.expectation());
+                            testcase.getSteps().add(slickStep);
+                        }
+                    }
+                    testcase = slickClient.testcase(testcase.getId()).update(testcase);
+                    TestcaseReference testReference = new TestcaseReference();
+                    testReference.setName(testcase.getName());
+                    testReference.setAutomationId(testcase.getAutomationId());
+                    testReference.setAutomationKey(testcase.getAutomationKey());
+                    testReference.setTestcaseId(testcase.getId());
+                    testReference.setAutomationTool(testcase.getAutomationTool());
+
+                    TestrunReference testrunReference = new TestrunReference();
+                    testrunReference.setName(testrun.getName());
+                    testrunReference.setTestrunId(testrun.getId());
+
+                    Result result = new Result();
+                    result.setProject(projectReference);
+                    result.setTestrun(testrunReference);
+                    result.setTestcase(testReference);
+                    result.setStatus("NO_RESULT");
+                    result.setReason("not run yet...");
+                    result.setRecorded(new Date());
+                    result = slickClient.results().create(result);
+                    results.put(automationId, result);
+                }
+            }
+        }
+    }
 
     public static String getValueOrNullIfEmpty(String value) {
         if(value == null || "".equals(value)) {
@@ -320,52 +329,58 @@ public class SlickTestNGController {
         }
     }
 
-//    public Result getResultFor(Description testDescription) {
-//        String automationId = getAutomationId(testDescription);
-//        if(results.containsKey(automationId)) {
-//            return results.get(automationId);
-//        } else {
-//            return null;
-//        }
-//    }
-//
-//    public Result getOrCreateResultFor(Description testDescription) {
-//        if(isUsingSlick()) {
-//            Result result = getResultFor(testDescription);
-//            if(result == null) {
-//                try {
-//                    addResultFor(testDescription);
-//                    return getResultFor(testDescription);
-//                } catch (SlickError e) {
-//                    e.printStackTrace();
-//                    System.err.println("!!!! ERROR creating slick result for " + testDescription.getDisplayName() + " !!!!");
-//                    return null;
-//                }
-//            } else {
-//                return result;
-//            }
-//        } else {
-//            return null;
-//        }
-//    }
-//
-//
-//    public void createSuiteResults(ArrayList<Description> children) {
-//        if(isUsingSlick()) {
-//            for (Description child : children) {
-//                if (child.isTest()) {
-//                    try {
-//                        addResultFor(child);
-//                    } catch (SlickError e) {
-//                        e.printStackTrace();
-//                        System.err.println("!!!! ERROR creating slick result for " + child.getDisplayName() + " !!!!");
-//                    }
-//                } else {
-//                    if (child.getChildren() != null) {
-//                        createSuiteResults(child.getChildren());
-//                    }
-//                }
-//            }
-//        }
-//    }
+    public Result getResultFor(Method testMethod) {
+        String automationId = getAutomationId(testMethod);
+        if(results.containsKey(automationId)) {
+            return results.get(automationId);
+        } else {
+            return null;
+        }
+    }
+
+    public Result getOrCreateResultFor(Method testMethod) {
+        if(isUsingSlick()) {
+            Result result = getResultFor(testMethod);
+            if(result == null) {
+                try {
+                    addResultFor(testMethod);
+                    return getResultFor(testMethod);
+                } catch (SlickError e) {
+                    e.printStackTrace();
+                    System.err.println("!!!! ERROR creating slick result for " + testMethod.getName() + " !!!!");
+                    return null;
+                }
+            } else {
+                return result;
+            }
+        } else {
+            return null;
+        }
+    }
+
+
+    public void createSuiteResults(List<XmlTest> xmlTests) {
+        if(isUsingSlick()) {
+            for(XmlTest xmlTest : xmlTests) {
+                for(XmlClass xmlClass : xmlTest.getClasses()) {
+                    try {
+                        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                        Class currentClass = cl.loadClass(xmlClass.getName());
+                        Set<Method> allMethods = ClassHelper.getAvailableMethods(currentClass);
+                        Iterator<Method> iMethods = allMethods.iterator();
+                        while (iMethods.hasNext()) {
+                            Method eachMethod = iMethods.next();
+                            Test test = eachMethod.getAnnotation(Test.class);
+                            if (test != null) {
+                                addResultFor(eachMethod);
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("e: " + e.getMessage());
+                    }
+
+                }
+            }
+        }
+    }
 }
