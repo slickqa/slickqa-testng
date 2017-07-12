@@ -46,10 +46,6 @@ public class SlickResult implements IResultListener2  {
         return retval;
     }
 
-    public SlickLogger log() {
-        return logger.get();
-    }
-
     private SlickTestNGController getSlickTestNGController() {
         if(!triedToInitialize) {
             slickTestNGController = SlickTestNGControllerFactory.getControllerInstance();
@@ -126,8 +122,8 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestStart(ITestResult testResult) {
-        // TODO: this crashes
-        //logger.set(new SlickResultLogger(this));
+        logger.set(new SlickResultLogger(this));
+        testResult.getTestContext().setAttribute("slickLogger", logger.get());
         Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
         if(isUsingSlick() && testMethod.getAnnotation(SlickMetaData.class) != null) {
             Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
@@ -137,7 +133,6 @@ public class SlickResult implements IResultListener2  {
             update.setRunstatus("RUNNING");
             try {
                 result = getSlickClient().result(result.getId()).update(update);
-                 // TODO: this doesn't seem to update the currentResult correctly in the hashmap
                 currentResult.set(getSlickClient().result(result.getId()).get());
             } catch (SlickError e) {
                 e.printStackTrace();
@@ -158,8 +153,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                // TODO: this crashes
-                //log().flushLogs();
+                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("PASS");
@@ -179,8 +174,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                // TODO: this crashes
-                //log().flushLogs();
+                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("FAIL");
@@ -200,8 +195,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                // TODO: this crashes
-                //log().flushLogs();
+                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("SKIPPED");
