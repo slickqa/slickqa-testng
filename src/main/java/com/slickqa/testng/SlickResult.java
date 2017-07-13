@@ -7,6 +7,7 @@ import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.internal.IResultListener2;
+import java.util.Arrays;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -14,11 +15,8 @@ import java.util.Date;
 public class SlickResult implements IResultListener2  {
 
     private SlickTestNGController slickTestNGController;
-
     private ThreadLocal<Result> currentResult;
-
-    private ThreadLocal<SlickFileAttacher> fileAttacher;
-
+    private ThreadLocal<SlickResultLogger> slickResultLogger;
     private boolean triedToInitialize;
 
     public static String slickResultTestContextIdentifier = "slickResult";
@@ -60,6 +58,7 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestStart(ITestResult testResult) {
+        slickResultLogger.set(new SlickResultLogger(this));
         Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
         if(isUsingSlick() && testMethod.getAnnotation(SlickMetaData.class) != null) {
             Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
@@ -106,14 +105,16 @@ public class SlickResult implements IResultListener2  {
     @Override
     public void onTestFailure(ITestResult testResult) {
         String status = "BROKEN_TEST";
-        Throwable cause = testResult.getThrowable();
-        if (null != cause) {
-            if (cause.toString().contains("java.lang.AssertionError")) {
-                status = "FAIL";
-            }
-        }
 
         if(isUsingSlick()) {
+            Throwable cause = testResult.getThrowable();
+            if (null != cause) {
+                if (cause.toString().contains("java.lang.AssertionError")) {
+                    status = "FAIL";
+                }
+                slickResultLogger.get().error(cause.toString());
+                slickResultLogger.get().error(Arrays.toString(cause.getStackTrace()).replace(" ", "\r\n"));
+            }
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
@@ -128,11 +129,13 @@ public class SlickResult implements IResultListener2  {
                 }
             }
         }
+        slickResultLogger.get().flushLogs();
     }
 
     @Override
     public void onTestSkipped(ITestResult testResult) {
         if(isUsingSlick()) {
+            slickResultLogger.get().debug("Test was skipped!");
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
@@ -147,6 +150,7 @@ public class SlickResult implements IResultListener2  {
                 }
             }
         }
+        slickResultLogger.get().flushLogs();
     }
 
     @Override
@@ -155,13 +159,13 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onStart(ITestContext context) {
-        System.out.println("SlickResult.onStart");
         triedToInitialize = false;
         slickTestNGController = null;
         currentResult = new ThreadLocal<>();
         //logger = new ThreadLocal<>();
         currentResult.set(null);
         context.setAttribute(slickResultTestContextIdentifier, this);
+        slickResultLogger = new ThreadLocal<>();
     }
 
     @Override
