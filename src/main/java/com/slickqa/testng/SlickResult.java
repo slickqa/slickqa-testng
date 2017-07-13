@@ -3,19 +3,13 @@ package com.slickqa.testng;
 import com.slickqa.client.SlickClient;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.model.Result;
-import com.slickqa.client.model.StoredFile;
 import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.internal.IResultListener2;
-import com.slickqa.testng.annotations.SlickLogger;
 
-import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class SlickResult implements IResultListener2  {
 
@@ -23,9 +17,13 @@ public class SlickResult implements IResultListener2  {
 
     private ThreadLocal<Result> currentResult;
 
-    private ThreadLocal<SlickLogger> logger;
+    //private ThreadLocal<SlickLogger> logger;
+
+    private ThreadLocal<SlickFileAttacher> fileAttacher;
 
     private boolean triedToInitialize;
+
+    public static String slickResultTestContextIdentifier = "slickResult";
 
     public SlickClient getSlickClient() {
         if(isUsingSlick()) {
@@ -62,68 +60,10 @@ public class SlickResult implements IResultListener2  {
         return current;
     }
 
-    private void addFileToResult(String resultId, StoredFile file) {
-        try {
-            Result current = getSlickClient().result(resultId).get();
-            List<StoredFile> files = current.getFiles();
-            if(files == null) {
-                files = new ArrayList<>(1);
-            }
-            files.add(file);
-            Result update = new Result();
-            update.setFiles(files);
-            getSlickClient().result(current.getId()).update(update);
-        } catch (SlickError e) {
-            e.printStackTrace();
-            System.err.println("!! ERROR: adding file to result " + resultId + " !!");
-        }
-
-    }
-
-    public void addFile(Path localPath) {
-        if(isUsingSlick()) {
-            Result current = currentResult.get();
-            if(current != null) {
-                StoredFile file = null;
-                try {
-                    file = getSlickClient().files().createAndUpload(localPath);
-                } catch (SlickError e) {
-                    e.printStackTrace();
-                    System.err.println("!! ERROR: unable to upload file " + localPath.toString() + " !!");
-                }
-                if (file != null) {
-                    addFileToResult(current.getId(), file);
-                }
-            } else {
-                System.err.println("!! WARNING: no current result when trying to add " + localPath.toString() + " !!");
-            }
-        }
-    }
-
-    public void addFile(String filename, String mimetype, InputStream inputStream) {
-        if(isUsingSlick()) {
-            Result current = currentResult.get();
-            if(current != null) {
-                StoredFile file = null;
-                try {
-                    file = getSlickClient().files().createAndUpload(filename, mimetype, inputStream);
-                } catch (SlickError e) {
-                    e.printStackTrace();
-                    System.err.println("!! ERROR: unable to upload file " + filename + " !!");
-                }
-                if (file != null) {
-                    addFileToResult(current.getId(), file);
-                }
-            } else {
-                System.err.println("!! WARNING: no current result when trying to add " + filename + " !!");
-            }
-        }
-    }
-
     @Override
     public void onTestStart(ITestResult testResult) {
-        logger.set(new SlickResultLogger(this));
-        testResult.getTestContext().setAttribute("slickLogger", logger.get());
+        //logger.set(new SlickResultLogger(this));
+        //testResult.getTestContext().setAttribute("slickLogger", logger.get());
         Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
         if(isUsingSlick() && testMethod.getAnnotation(SlickMetaData.class) != null) {
             Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
@@ -153,8 +93,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                slickLogger.flushLogs();
+                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("PASS");
@@ -174,8 +114,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                slickLogger.flushLogs();
+                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("FAIL");
@@ -195,8 +135,8 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                slickLogger.flushLogs();
+                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
+                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("SKIPPED");
@@ -217,11 +157,13 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onStart(ITestContext context) {
+        System.out.println("SlickResult.onStart");
         triedToInitialize = false;
         slickTestNGController = null;
         currentResult = new ThreadLocal<>();
-        logger = new ThreadLocal<>();
+        //logger = new ThreadLocal<>();
         currentResult.set(null);
+        context.setAttribute(slickResultTestContextIdentifier, this);
     }
 
     @Override

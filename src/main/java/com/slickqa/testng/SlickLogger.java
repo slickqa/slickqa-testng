@@ -1,4 +1,4 @@
-package com.slickqa.testng.annotations;
+package com.slickqa.testng;
 
 import com.slickqa.client.model.LogEntry;
 

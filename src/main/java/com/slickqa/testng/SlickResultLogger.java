@@ -3,7 +3,6 @@ package com.slickqa.testng;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.model.LogEntry;
 import com.slickqa.client.model.Result;
-import com.slickqa.testng.annotations.SlickLogger;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
