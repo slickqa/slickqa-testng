@@ -17,8 +17,6 @@ public class SlickResult implements IResultListener2  {
 
     private ThreadLocal<Result> currentResult;
 
-    //private ThreadLocal<SlickLogger> logger;
-
     private ThreadLocal<SlickFileAttacher> fileAttacher;
 
     private boolean triedToInitialize;
@@ -62,8 +60,6 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestStart(ITestResult testResult) {
-        //logger.set(new SlickResultLogger(this));
-        //testResult.getTestContext().setAttribute("slickLogger", logger.get());
         Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
         if(isUsingSlick() && testMethod.getAnnotation(SlickMetaData.class) != null) {
             Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
@@ -93,8 +89,6 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("PASS");
@@ -111,14 +105,20 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestFailure(ITestResult testResult) {
+        String status = "BROKEN_TEST";
+        Throwable cause = testResult.getThrowable();
+        if (null != cause) {
+            if (cause.toString().contains("java.lang.AssertionError")) {
+                status = "FAIL";
+            }
+        }
+
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
-                update.setStatus("FAIL");
+                update.setStatus(status);
                 update.setRunstatus("FINISHED");
                 try {
                     getSlickClient().result(result.getId()).update(update);
@@ -135,8 +135,6 @@ public class SlickResult implements IResultListener2  {
         if(isUsingSlick()) {
             Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
-                //SlickLogger slickLogger = (SlickLogger) testResult.getTestContext().getAttribute("slickLogger");
-                //slickLogger.flushLogs();
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus("SKIPPED");

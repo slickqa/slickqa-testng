@@ -11,6 +11,7 @@ import com.slickqa.client.impl.JsonUtil;
 import com.slickqa.client.model.*;
 import com.slickqa.client.model.Step;
 import com.slickqa.testng.annotations.*;
+import org.testng.ITestNGMethod;
 import org.testng.annotations.Test;
 import org.testng.internal.ClassHelper;
 import org.testng.xml.XmlClass;
@@ -359,26 +360,14 @@ public class SlickTestNGController {
     }
 
 
-    public void createSuiteResults(List<XmlTest> xmlTests) {
+    public void createSuiteResults(List<ITestNGMethod> testNGMethods) {
         if(isUsingSlick()) {
-            for(XmlTest xmlTest : xmlTests) {
-                for(XmlClass xmlClass : xmlTest.getClasses()) {
-                    try {
-                        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                        Class currentClass = cl.loadClass(xmlClass.getName());
-                        Set<Method> allMethods = ClassHelper.getAvailableMethods(currentClass);
-                        Iterator<Method> iMethods = allMethods.iterator();
-                        while (iMethods.hasNext()) {
-                            Method eachMethod = iMethods.next();
-                            Test test = eachMethod.getAnnotation(Test.class);
-                            if (test != null) {
-                                addResultFor(eachMethod);
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.err.println("e: " + e.getMessage());
-                    }
-
+            for(ITestNGMethod testNGMethod : testNGMethods) {
+                testNGMethod.getConstructorOrMethod().getMethod();
+                try {
+                    addResultFor(testNGMethod.getConstructorOrMethod().getMethod());
+                } catch (Exception e) {
+                    System.err.println("exception: " + e.getMessage());
                 }
             }
         }

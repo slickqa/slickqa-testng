@@ -1,9 +1,7 @@
 package com.slickqa.testng;
 
 import org.testng.ITestContext;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.*;
 
 /**
  * Created by slambson on 7/12/17.
@@ -13,7 +11,7 @@ public class SlickBaseTest {
     private ThreadLocal<SlickResultLogger> logger;
     private ThreadLocal<SlickFileAttacher> fileAttacher;
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setupMethod(ITestContext testContext) {
         System.out.println("SlickBaseTest.BeforeMethod");
         SlickResult slickResult = (SlickResult) testContext.getAttribute(SlickResult.slickResultTestContextIdentifier);
@@ -26,9 +24,9 @@ public class SlickBaseTest {
         logger.get().flushLogs();
     }
 
-    @BeforeSuite
-    public void setupSuite() {
-        System.out.println("SlickBaseTest.BeforeSuite");
+    @BeforeTest(alwaysRun = true)
+    public void setupTest() {
+        System.out.println("SlickBaseTest.BeforeTest");
         logger = new ThreadLocal<>();
         fileAttacher = new ThreadLocal<>();
     }
