@@ -33,31 +33,31 @@ Example of passing these Java params: -Dslick.baseurl=http://192.168.99.100/slic
 
 Example:
 
-package com.slicktestng.example;
+    package com.slicktestng.example;
 
-import com.slickqa.testng.SlickBaseTest;
-import com.slickqa.testng.annotations.SlickMetaData;
-import com.slickqa.testng.annotations.Step;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+    import com.slickqa.testng.SlickBaseTest;
+    import com.slickqa.testng.annotations.SlickMetaData;
+    import com.slickqa.testng.annotations.Step;
+    import org.testng.Assert;
+    import org.testng.annotations.Test;
 
-public class ExampleTests extends BaseUITest {
+    public class ExampleTests extends BaseUITest {
 
 
-    @Test
-    @SlickMetaData(title = "First Test",
-            component = "First Component",
-            feature = "First Feature",
-            steps = {
-                    @Step(step = "first step that isn't different", expectation = "first step worked"),
-                    @Step(step = "second step", expectation = "second step worked"),
-                    @Step(step = "weird, a third step", expectation = "that it is all over")
-            })
-    public void firstTest() throws Exception {
-        slickLog().debug("Hello.... Is it me your looking for?");
-        Assert.assertTrue(iLoveThisSong, "What?? How could you not?");
-        Path file = Paths.get("/tmp/lionel_richie.png");
-        slickFileAttach.addFile(file);
+        @Test
+        @SlickMetaData(title = "First Test",
+                component = "First Component",
+                feature = "First Feature",
+                steps = {
+                        @Step(step = "first step that isn't different", expectation = "first step worked"),
+                        @Step(step = "second step", expectation = "second step worked"),
+                        @Step(step = "weird, a third step", expectation = "that it is all over")
+                })
+        public void firstTest() throws Exception {
+            slickLog().debug("Hello.... Is it me your looking for?");
+            Assert.assertTrue(iLoveThisSong, "What?? How could you not?");
+            Path file = Paths.get("/tmp/lionel_richie.png");
+            slickFileAttach.addFile(file);
+        }
     }
-}
             
