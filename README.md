@@ -8,8 +8,8 @@ To utilize this in your testNG tests and successfully post your results to Slick
 1. Include Slick Test Listeners.  There are 2 options for including the Slick Listeners:
    * A. (recommended) Have your Test classes extend the SlickBaseTest class
    * B. Use the following 2 Listeners for your tests: SlickSuite.class, SlickResult.class
-      ** More info on configuring Listeners can be viewed here: http://testng.org/doc/documentation-main.html#testng-listeners
-      ** Note: if you use this approach instead of extending the SlickBaseTest then the slickLog and slickFileAttach methods will not be provided to you.  You would have to implement initializing the SlickResultLogger and SlickFileAttacher objects yourself.
+       More info on configuring Listeners can be viewed here: http://testng.org/doc/documentation-main.html#testng-listeners
+       Note: if you use this approach instead of extending the SlickBaseTest then the slickLog and slickFileAttach methods will not be provided to you.  You would have to implement initializing the SlickResultLogger and SlickFileAttacher objects yourself.
 
 2. Include the SlickMetaData annotation above each test method.  For example:
     SlickMetaData(title = "First Test",
