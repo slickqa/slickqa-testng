@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.slickqa</groupId>
     <artifactId>slickqa-testng</artifactId>
-    <version>1.0.0-0</version>
+    <version>1.0.0-1</version>
     <name>Slick TestNG Connector</name>
     <description>TestNG connector for the SlickQA results database.</description>
     <licenses>
