@@ -15,6 +15,55 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
+    <url>http://github.com/slickqa/slick-webdriver-java</url>
+    <issueManagement>
+        <system>Github</system>
+        <url>http://github.com/slickqa/slick-webdriver-java/issues</url>
+    </issueManagement>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>sharonlambson</id>
+            <name>Sharon Lambson</name>
+            <email>sharonlambson@gmail.com</email>
+            <url>https://github.com/sharonlambson</url>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>America/Denver</timezone>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>SonatypeSnapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <uniqueVersion>true</uniqueVersion>
+        </snapshotRepository>
+        <repository>
+            <id>SonatypeReleases</id>
+            <name>Sonatype OSS Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <uniqueVersion>false</uniqueVersion>
+        </repository>
+        <downloadUrl>https://oss.sonatype.org/content/groups/public</downloadUrl>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/slickqa/slickqa-testng.git</connection>
+        <developerConnection>scm:git:https://github.com/slickqa/slickqa-testng.git</developerConnection>
+        <url>https://github.com/slickqa/slickqa-testng</url>
+    </scm>
+
     <build>
         <plugins>
             <plugin>
