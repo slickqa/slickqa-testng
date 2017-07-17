@@ -15,10 +15,10 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
-    <url>http://github.com/slickqa/slick-webdriver-java</url>
+    <url>http://github.com/slickqa/slickqa-testng</url>
     <issueManagement>
         <system>Github</system>
-        <url>http://github.com/slickqa/slick-webdriver-java/issues</url>
+        <url>http://github.com/slickqa/slickqa-testng/issues</url>
     </issueManagement>
     <licenses>
         <license>
