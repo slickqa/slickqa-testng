@@ -28,7 +28,7 @@ To utilize this in your testNG tests and successfully post your results to Slick
    * slick.release = The Slick release to post results to
    * slick.build = The Slick build to post results to
    
-Example of passing these Java params: -Dslick.baseurl=http://192.168.99.100/slick/ -Dslick.project=TestNG -Dslick.testplan=FirstTestPlan -Dslick.release=1 -Dslick.build=1
+Example of passing these Java params: -Dslick.baseurl=http://192.168.99.100/slick/ -Dslick.project=TestNG -Dslick.testplan="Example Test Plan" -Dslick.release=1 -Dslick.build=1
             
 
 Example:
