@@ -4,8 +4,13 @@ import org.testng.ITestContext;
 import org.testng.annotations.*;
 
 /**
- * Created by slambson on 7/12/17.
+ * Base
+ *
+ * Also look at {@link com.slickqa.client.apiparts.FilesQueryApi}.
+ *
+ * @author Created by Sharon Lambson on 7/14/17.
  */
+@Listeners({SlickSuite.class, SlickResult.class})
 public class SlickBaseTest {
 
     private ThreadLocal<SlickResultLogger> logger;

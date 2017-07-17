@@ -24,16 +24,16 @@ public class ExampleTest extends SlickBaseTest {
     }
 
     @Test
-    @SlickMetaData(title = "Example Test Two",
+    @SlickMetaData(title = "Example Attach File",
             component = "Another very fine component",
-            feature = "A feature",
+            feature = "Attaching a file",
             steps = {
                     @Step(step = "first step", expectation = "first step worked"),
                     @Step(step = "second")
             })
     public void exampleFileAttachTest() throws Exception {
         Path file = Paths.get(ExampleTest.class.getProtectionDomain().getCodeSource().getLocation().getPath())
-                .resolve(Paths.get("com", "slickqa", "junit", "example", "screenshot.png"));
+                .resolve(Paths.get("screenshot.png"));
         slickFileAttach.addFile(file);
     }
 }
