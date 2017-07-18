@@ -1,0 +1,4 @@
+Known TODO items:
+- Provide funtionality to pull the test plan names from the suite.xml
+	- This should still be able to be overriden from the command line slick.testplan param
+- Seems there might be an issue with running with parallel threads and attaching files.  Need to test further and find root cause.
