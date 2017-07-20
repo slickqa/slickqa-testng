@@ -19,7 +19,7 @@ public class SlickBaseTest {
     @BeforeMethod(alwaysRun = true)
     public void setupMethod(ITestContext testContext) {
         SlickResult slickResult = (SlickResult) testContext.getAttribute(SlickResult.slickResultTestContextIdentifier);
-        if (slickResult.getSlickClient() != null) {
+        if (slickResult != null && slickResult.getSlickClient() != null) {
             logger.set(new SlickResultLogger(slickResult));
             fileAttacher.set(new SlickFileAttacher(slickResult));
         }
@@ -27,7 +27,9 @@ public class SlickBaseTest {
 
     @AfterMethod
     public void cleanupMethod() {
-        logger.get().flushLogs();
+        if (logger.get() != null) {
+            logger.get().flushLogs();
+        }
     }
 
     @BeforeTest(alwaysRun = true)
@@ -38,10 +40,16 @@ public class SlickBaseTest {
     }
 
     public SlickResultLogger slickLog() {
-        return logger.get();
+        if (logger.get() != null) {
+            return logger.get();
+        }
+        return new SlickResultLogger(new SlickResult());
     }
 
     public SlickFileAttacher slickFileAttach() {
-        return fileAttacher.get();
+        if (fileAttacher.get() != null) {
+            return fileAttacher.get();
+        }
+        return new SlickFileAttacher(new SlickResult());
     }
 }

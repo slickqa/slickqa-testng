@@ -58,24 +58,26 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestStart(ITestResult testResult) {
-        slickResultLogger.set(new SlickResultLogger(this));
-        Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
-        if(isUsingSlick() && testMethod.getAnnotation(SlickMetaData.class) != null) {
-            Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
-            Result update = new Result();
-            update.setStarted(new Date());
-            update.setReason("");
-            update.setRunstatus("RUNNING");
-            try {
-                result = getSlickClient().result(result.getId()).update(update);
-                currentResult.set(getSlickClient().result(result.getId()).get());
-            } catch (SlickError e) {
-                e.printStackTrace();
-                System.err.println("!! ERROR: Unable to set result to starting. !!");
+        if(isUsingSlick()) {
+            slickResultLogger.set(new SlickResultLogger(this));
+            Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
+            if (testMethod.getAnnotation(SlickMetaData.class) != null) {
+                Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
+                Result update = new Result();
+                update.setStarted(new Date());
+                update.setReason("");
+                update.setRunstatus("RUNNING");
+                try {
+                    result = getSlickClient().result(result.getId()).update(update);
+                    currentResult.set(getSlickClient().result(result.getId()).get());
+                } catch (SlickError e) {
+                    e.printStackTrace();
+                    System.err.println("!! ERROR: Unable to set result to starting. !!");
+                    currentResult.set(null);
+                }
+            } else {
                 currentResult.set(null);
             }
-        } else {
-            currentResult.set(null);
         }
     }
 
@@ -159,13 +161,15 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onStart(ITestContext context) {
-        triedToInitialize = false;
-        slickTestNGController = null;
-        currentResult = new ThreadLocal<>();
-        //logger = new ThreadLocal<>();
-        currentResult.set(null);
-        context.setAttribute(slickResultTestContextIdentifier, this);
-        slickResultLogger = new ThreadLocal<>();
+        if(isUsingSlick()) {
+            triedToInitialize = false;
+            slickTestNGController = null;
+            currentResult = new ThreadLocal<>();
+            //logger = new ThreadLocal<>();
+            currentResult.set(null);
+            context.setAttribute(slickResultTestContextIdentifier, this);
+            slickResultLogger = new ThreadLocal<>();
+        }
     }
 
     @Override
