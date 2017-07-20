@@ -19,8 +19,10 @@ public class SlickBaseTest {
     @BeforeMethod(alwaysRun = true)
     public void setupMethod(ITestContext testContext) {
         SlickResult slickResult = (SlickResult) testContext.getAttribute(SlickResult.slickResultTestContextIdentifier);
-        logger.set(new SlickResultLogger(slickResult));
-        fileAttacher.set(new SlickFileAttacher(slickResult));
+        if (slickResult.getSlickClient() != null) {
+            logger.set(new SlickResultLogger(slickResult));
+            fileAttacher.set(new SlickFileAttacher(slickResult));
+        }
     }
 
     @AfterMethod
