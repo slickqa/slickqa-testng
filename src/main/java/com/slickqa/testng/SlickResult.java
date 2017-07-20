@@ -128,8 +128,8 @@ public class SlickResult implements IResultListener2  {
                     System.err.println("!! ERROR: Unable to pass result !!");
                 }
             }
+            slickResultLogger.get().flushLogs();
         }
-        slickResultLogger.get().flushLogs();
     }
 
     @Override
@@ -149,8 +149,8 @@ public class SlickResult implements IResultListener2  {
                     System.err.println("!! ERROR: Unable to pass result !!");
                 }
             }
+            slickResultLogger.get().flushLogs();
         }
-        slickResultLogger.get().flushLogs();
     }
 
     @Override
