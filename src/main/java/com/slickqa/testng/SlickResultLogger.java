@@ -14,40 +14,51 @@ import java.util.Date;
 public class SlickResultLogger implements SlickLogger {
     public static int BUFFER_SIZE = 10;
     public static int MAX_SECONDS_SINCE_FIRST_ENTRY = 5;
-    public static final String LOGGER_NAME = "testcase";
+    public static final String defaultLoggerName = "SlickLog";
+    public String loggerName;
     protected LogLevel minimumLevel;
-    protected SlickResult slick;
+    protected String slickResultId;
     protected ArrayList<LogEntry> buffer;
+    public static String NOTDEFINED = "NOTDEFINED";
 
 
-    public SlickResultLogger(SlickResult slick) {
-        this.slick = slick;
+    public SlickResultLogger(String slickResultId) {
+        this.slickResultId = slickResultId;
         this.minimumLevel = SlickLogger.DEFAULT_MINIMUM_LOG_LEVEL;
         buffer = new ArrayList<>(BUFFER_SIZE);
+        loggerName = defaultLoggerName;
     }
 
     protected void uploadLogsIfNecessary() {
-        if (slick.isUsingSlick()) {
+        if (SlickTestNGController.isUsingSlick()) {
             if (buffer.size() >= BUFFER_SIZE || (buffer.size() > 0 && (((new Date()).getTime() - buffer.get(0).getEntryTime().getTime()) / 1000) >= MAX_SECONDS_SINCE_FIRST_ENTRY)) {
                 flushLogs();
             }
         }
     }
 
+    public void setLoggerName(String loggerName) {
+        this.loggerName = loggerName;
+    }
+
     @Override
     public void flushLogs() {
-        if (slick.isUsingSlick() && buffer.size() > 0) {
-            Result current = slick.getCurrentResult();
-            if (current != null) {
-                try {
-                    slick.getSlickClient().result(current.getId()).addLogs(buffer);
-                } catch (SlickError e) {
-                    e.printStackTrace();
-                    System.err.println("!! ERROR: Unable to post logs to slick !!");
-                } finally {
-                    buffer = new ArrayList<>(BUFFER_SIZE);
+        try {
+            if (SlickTestNGController.isUsingSlick() && buffer.size() > 0) {
+                Result current = SlickResult.getThreadSlickClient().result(slickResultId).get();
+                if (current != null) {
+                    try {
+                        SlickResult.getThreadSlickClient().result(current.getId()).addLogs(buffer);
+                    } catch (SlickError e) {
+                        e.printStackTrace();
+                        System.err.println("!! ERROR: Unable to post logs to slick !!");
+                    } finally {
+                        buffer = new ArrayList<>(BUFFER_SIZE);
+                    }
                 }
             }
+        } catch (SlickError e) {
+            System.out.println("Error flushing logs: " + e.getMessage());
         }
     }
 
@@ -63,11 +74,11 @@ public class SlickResultLogger implements SlickLogger {
 
     @Override
     public void addLogEntry(LogEntry entry) {
-        if (slick.isUsingSlick()) {
+        if (SlickTestNGController.isUsingSlick() && !this.slickResultId.equals(SlickResultLogger.NOTDEFINED)) {
             buffer.add(entry);
             uploadLogsIfNecessary();
         }
-        // TODO: print message if configured
+        flushLogs();
     }
 
     @Override
@@ -79,7 +90,7 @@ public class SlickResultLogger implements SlickLogger {
         LogEntry entry = new LogEntry();
         entry.setEntryTime(new Date());
         entry.setLevel(level.toString());
-        entry.setLoggerName(LOGGER_NAME);
+        entry.setLoggerName(loggerName);
         entry.setMessage(msg);
         return entry;
     }

@@ -1,7 +1,9 @@
 package com.slickqa.testng;
 
 import com.slickqa.client.SlickClient;
+import com.slickqa.client.SlickClientFactory;
 import com.slickqa.client.errors.SlickError;
+import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.Result;
 import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestContext;
@@ -13,70 +15,45 @@ import java.lang.reflect.Method;
 import java.util.Date;
 
 public class SlickResult implements IResultListener2  {
-
-    private SlickTestNGController slickTestNGController;
-    private ThreadLocal<Result> currentResult;
-    private ThreadLocal<SlickResultLogger> slickResultLogger;
-    private boolean triedToInitialize;
-
-    public static String slickResultTestContextIdentifier = "slickResult";
-
-    public SlickClient getSlickClient() {
-        if(isUsingSlick()) {
-            return getSlickTestNGController().getSlickClient();
-        } else {
-            return null;
-        }
-    }
+    private static ThreadLocal<String> threadCurrentResultId;
+    private static ThreadLocal<SlickClient> threadSlickClient;
+    private static ThreadLocal<SlickResultLogger> threadSlickResultLogger;
+    private static ThreadLocal<SlickFileAttacher> threadSlickFileAttacher;
+    private String RUNNING = "RUNNING";
+    private String PASS = "PASS";
+    private String FINISHED = "FINISHED";
+    private String FAIL = "FAIL";
+    private String BROKEN_TEST = "BROKEN_TEST";
+    private String SKIPPED = "SKIPPED";
 
     public boolean isUsingSlick() {
-        boolean retval = false;
-
-        SlickTestNGController controller = getSlickTestNGController();
-        if(controller != null && controller.isUsingSlick()) {
-            retval = true;
+        if(SlickSuite.getSlickTestNGController() != null) {
+            return SlickSuite.getSlickTestNGController().isUsingSlick();
         }
-
-        return retval;
-    }
-
-    private SlickTestNGController getSlickTestNGController() {
-        if(!triedToInitialize) {
-            slickTestNGController = SlickTestNGControllerFactory.getControllerInstance();
-            triedToInitialize = true;
-        }
-        return slickTestNGController;
-    }
-
-    public Result getCurrentResult() {
-        Result current = null;
-        if(isUsingSlick()) {
-            current = currentResult.get();
-        }
-        return current;
+        return false;
     }
 
     @Override
     public void onTestStart(ITestResult testResult) {
+        Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
+        SlickClient slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
+        threadSlickClient.set(slickClient);
         if(isUsingSlick()) {
-            slickResultLogger.set(new SlickResultLogger(this));
-            Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
             if (testMethod.getAnnotation(SlickMetaData.class) != null) {
-                Result result = getSlickTestNGController().getOrCreateResultFor(testMethod);
+                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod);
+                threadCurrentResultId.set(result.getId());
+                threadSlickResultLogger.set(new SlickResultLogger(threadCurrentResultId.get()));
+                threadSlickFileAttacher.set(new SlickFileAttacher(threadCurrentResultId.get()));
                 Result update = new Result();
                 update.setStarted(new Date());
                 update.setReason("");
-                update.setRunstatus("RUNNING");
+                update.setRunstatus(RUNNING);
                 try {
-                    result = getSlickClient().result(result.getId()).update(update);
-                    currentResult.set(getSlickClient().result(result.getId()).get());
+                    result = SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: Unable to set result to starting. !!");
-                    currentResult.set(null);
                 }
-            } else {
-                currentResult.set(null);
             }
         }
     }
@@ -88,71 +65,126 @@ public class SlickResult implements IResultListener2  {
     @Override
     public void onTestSuccess(ITestResult testResult) {
         if(isUsingSlick()) {
-            Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
+            Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
                 update.setFinished(new Date());
-                update.setStatus("PASS");
-                update.setRunstatus("FINISHED");
+                update.setStatus(PASS);
+                update.setRunstatus(FINISHED);
                 try {
-                    getSlickClient().result(result.getId()).update(update);
+                    SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: Unable to pass result !!");
                 }
             }
+            threadSlickResultLogger.get().flushLogs();
+        }
+        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
+            threadCurrentResultId.remove();
+        }
+        if (threadSlickClient != null && threadSlickClient.get() != null) {
+            threadSlickClient.remove();
+        }
+        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
+            threadSlickResultLogger.remove();
+        }
+        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
+            threadSlickFileAttacher.remove();
         }
     }
 
     @Override
     public void onTestFailure(ITestResult testResult) {
-        String status = "BROKEN_TEST";
+        String status = BROKEN_TEST;
 
         if(isUsingSlick()) {
             Throwable cause = testResult.getThrowable();
             if (null != cause) {
                 if (cause.toString().contains("java.lang.AssertionError")) {
-                    status = "FAIL";
+                    status = FAIL;
                 }
-                slickResultLogger.get().error(cause.toString());
-                slickResultLogger.get().error(Arrays.toString(cause.getStackTrace()).replace(" ", "\r\n"));
+                threadSlickResultLogger.get().error(cause.toString());
+                threadSlickResultLogger.get().error(Arrays.toString(cause.getStackTrace()).replace(" ", "\r\n"));
             }
-            Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
+            Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
                 update.setFinished(new Date());
                 update.setStatus(status);
-                update.setRunstatus("FINISHED");
+                update.setRunstatus(FINISHED);
                 try {
-                    getSlickClient().result(result.getId()).update(update);
+                    SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: Unable to pass result !!");
                 }
             }
-            slickResultLogger.get().flushLogs();
+            threadSlickResultLogger.get().flushLogs();
+        }
+        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
+            threadCurrentResultId.remove();
+        }
+        if (threadSlickClient != null && threadSlickClient.get() != null) {
+            threadSlickClient.remove();
+        }
+        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
+            threadSlickResultLogger.remove();
+        }
+        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
+            threadSlickFileAttacher.remove();
         }
     }
 
     @Override
     public void onTestSkipped(ITestResult testResult) {
         if(isUsingSlick()) {
-            slickResultLogger.get().debug("Test was skipped!");
-            Result result = getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
+            threadSlickResultLogger.get().debug("Test was skipped!");
+            Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
                 update.setFinished(new Date());
-                update.setStatus("SKIPPED");
-                update.setRunstatus("FINISHED");
+                update.setStatus(SKIPPED);
+                update.setRunstatus(FINISHED);
                 try {
-                    getSlickClient().result(result.getId()).update(update);
+                    SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: Unable to pass result !!");
                 }
             }
-            slickResultLogger.get().flushLogs();
+            threadSlickResultLogger.get().flushLogs();
         }
+        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
+            threadCurrentResultId.remove();
+        }
+        if (threadSlickClient != null && threadSlickClient.get() != null) {
+            threadSlickClient.remove();
+        }
+        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
+            threadSlickResultLogger.remove();
+        }
+        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
+            threadSlickFileAttacher.remove();
+        }
+    }
+
+    public static SlickClient getThreadSlickClient() {
+        SlickClient slickClient;
+        try {
+            slickClient = threadSlickClient.get();
+        } catch (NullPointerException e) {
+            slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
+        }
+        return slickClient;
+    }
+
+    public static SlickResultLogger getThreadSlickResultLogger() {
+        return threadSlickResultLogger.get();
+    }
+
+    public static SlickFileAttacher getThreadSlickFileAttacher() {
+        return threadSlickFileAttacher.get();
     }
 
     @Override
@@ -161,15 +193,10 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onStart(ITestContext context) {
-        if(isUsingSlick()) {
-            triedToInitialize = false;
-            slickTestNGController = null;
-            currentResult = new ThreadLocal<>();
-            //logger = new ThreadLocal<>();
-            currentResult.set(null);
-            context.setAttribute(slickResultTestContextIdentifier, this);
-            slickResultLogger = new ThreadLocal<>();
-        }
+        threadCurrentResultId = new ThreadLocal<String>();
+        threadSlickResultLogger = new ThreadLocal<SlickResultLogger>();
+        threadSlickClient = new ThreadLocal<SlickClient>();
+        threadSlickFileAttacher = new ThreadLocal<SlickFileAttacher>();
     }
 
     @Override
