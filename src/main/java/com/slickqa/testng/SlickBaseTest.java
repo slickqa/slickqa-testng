@@ -1,5 +1,6 @@
 package com.slickqa.testng;
 
+import com.slickqa.client.errors.SlickError;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
 
@@ -13,43 +14,25 @@ import org.testng.annotations.*;
 @Listeners({SlickSuite.class, SlickResult.class})
 public class SlickBaseTest {
 
-    private ThreadLocal<SlickResultLogger> logger;
-    private ThreadLocal<SlickFileAttacher> fileAttacher;
-
-    @BeforeMethod(alwaysRun = true)
-    public void setupMethod(ITestContext testContext) {
-        SlickResult slickResult = (SlickResult) testContext.getAttribute(SlickResult.slickResultTestContextIdentifier);
-        if (slickResult != null && slickResult.getSlickClient() != null) {
-            logger.set(new SlickResultLogger(slickResult));
-            fileAttacher.set(new SlickFileAttacher(slickResult));
-        }
-    }
-
-    @AfterMethod
-    public void cleanupMethod() {
-        if (logger.get() != null) {
-            logger.get().flushLogs();
-        }
-    }
-
-    @BeforeTest(alwaysRun = true)
-    public void setupTest() {
-        System.out.println("SlickBaseTest.BeforeTest");
-        logger = new ThreadLocal<>();
-        fileAttacher = new ThreadLocal<>();
-    }
-
     public SlickResultLogger slickLog() {
-        if (logger.get() != null) {
-            return logger.get();
+        SlickResultLogger slickResultLogger;
+        if (SlickResult.getThreadSlickResultLogger() != null) {
+            slickResultLogger = SlickResult.getThreadSlickResultLogger();
         }
-        return new SlickResultLogger(new SlickResult());
+        else {
+            slickResultLogger = new SlickResultLogger(SlickResultLogger.NOTDEFINED);
+        }
+        return slickResultLogger;
     }
 
     public SlickFileAttacher slickFileAttach() {
-        if (fileAttacher.get() != null) {
-            return fileAttacher.get();
+        SlickFileAttacher slickFileAttacher;
+        if (SlickResult.getThreadSlickFileAttacher() != null) {
+            slickFileAttacher =  SlickResult.getThreadSlickFileAttacher();
         }
-        return new SlickFileAttacher(new SlickResult());
+        else {
+            return new SlickFileAttacher(SlickResultLogger.NOTDEFINED);
+        }
+        return slickFileAttacher;
     }
 }

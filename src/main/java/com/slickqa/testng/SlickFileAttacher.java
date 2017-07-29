@@ -14,15 +14,15 @@ import java.util.List;
  */
 public class SlickFileAttacher {
 
-    protected SlickResult slick;
+    protected String slickResultId;
 
-    public SlickFileAttacher(SlickResult slick) {
-        this.slick = slick;
+    public SlickFileAttacher(String slickResultId) {
+        this.slickResultId = slickResultId;
     }
 
     private void addFileToResult(String resultId, StoredFile file) {
         try {
-            Result current = slick.getSlickClient().result(resultId).get();
+            Result current = SlickResult.getThreadSlickClient().result(resultId).get();
             List<StoredFile> files = current.getFiles();
             if(files == null) {
                 files = new ArrayList<>(1);
@@ -30,7 +30,7 @@ public class SlickFileAttacher {
             files.add(file);
             Result update = new Result();
             update.setFiles(files);
-            slick.getSlickClient().result(current.getId()).update(update);
+            SlickResult.getThreadSlickClient().result(current.getId()).update(update);
         } catch (SlickError e) {
             e.printStackTrace();
             System.err.println("!! ERROR: adding file to result " + resultId + " !!");
@@ -38,13 +38,13 @@ public class SlickFileAttacher {
 
     }
 
-    public void addFile(Path localPath) {
-        if(slick.isUsingSlick()) {
-            Result current = slick.getCurrentResult();
+    public void addFile(Path localPath) throws SlickError {
+        if(SlickTestNGController.isUsingSlick()) {
+            Result current = SlickResult.getThreadSlickClient().result(slickResultId).get();
             if(current != null) {
                 StoredFile file = null;
                 try {
-                    file = slick.getSlickClient().files().createAndUpload(localPath);
+                    file = SlickResult.getThreadSlickClient().files().createAndUpload(localPath);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: unable to upload file " + localPath.toString() + " !!");
@@ -58,13 +58,13 @@ public class SlickFileAttacher {
         }
     }
 
-    public void addFile(String filename, String mimetype, InputStream inputStream) {
-        if(slick.isUsingSlick()) {
-            Result current = slick.getCurrentResult();
+    public void addFile(String filename, String mimetype, InputStream inputStream) throws SlickError {
+        if(SlickTestNGController.isUsingSlick()) {
+            Result current = SlickResult.getThreadSlickClient().result(slickResultId).get();
             if(current != null) {
                 StoredFile file = null;
                 try {
-                    file = slick.getSlickClient().files().createAndUpload(filename, mimetype, inputStream);
+                    file = SlickResult.getThreadSlickClient().files().createAndUpload(filename, mimetype, inputStream);
                 } catch (SlickError e) {
                     e.printStackTrace();
                     System.err.println("!! ERROR: unable to upload file " + filename + " !!");

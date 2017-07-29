@@ -18,7 +18,7 @@ import java.lang.annotation.Annotation;
 
 public class SlickSuite implements ISuiteListener {
 
-    public final SlickTestNGController controller = SlickTestNGControllerFactory.getControllerInstance();
+    public final static SlickTestNGController controller = SlickTestNGControllerFactory.getControllerInstance();
 
     @Override
     public void onFinish(ISuite suite) {
@@ -28,9 +28,14 @@ public class SlickSuite implements ISuiteListener {
     @Override
     public void onStart(ISuite suite) {
         try {
+            controller.initializeController();
             controller.createSuiteResults(suite.getAllMethods());
         } catch (Exception e) {
             System.out.println("exception: " + e.getMessage());
         }
+    }
+
+    public static SlickTestNGController getSlickTestNGController() {
+        return controller;
     }
 }
