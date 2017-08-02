@@ -170,6 +170,10 @@ public class SlickTestNGController {
         } catch (NullPointerException e) {
             slickClient = new SlickClientImpl(baseURL);
         }
+
+        if(slickClient == null)
+            slickClient = new SlickClientImpl(baseURL);
+
         return slickClient;
     }
 
