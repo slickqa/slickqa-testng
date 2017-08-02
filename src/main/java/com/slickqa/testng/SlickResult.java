@@ -1,11 +1,11 @@
 package com.slickqa.testng;
 
 import com.slickqa.client.SlickClient;
-import com.slickqa.client.SlickClientFactory;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.Result;
 import com.slickqa.testng.annotations.SlickMetaData;
+import org.apache.logging.log4j.LogManager;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.internal.IResultListener2;
@@ -25,6 +25,8 @@ public class SlickResult implements IResultListener2  {
     private String FAIL = "FAIL";
     private String BROKEN_TEST = "BROKEN_TEST";
     private String SKIPPED = "SKIPPED";
+
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(SlickResult.class);
 
     public boolean isUsingSlick() {
         if(SlickSuite.getSlickTestNGController() != null) {
@@ -64,7 +66,7 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestSuccess(ITestResult testResult) {
-        if(isUsingSlick()) {
+        if(isUsingSlick() && threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
             Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
                 Result update = new Result();
@@ -80,25 +82,17 @@ public class SlickResult implements IResultListener2  {
             }
             threadSlickResultLogger.get().flushLogs();
         }
-        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
-            threadCurrentResultId.remove();
+        else {
+            logger.debug("Not logging to slick");
         }
-        if (threadSlickClient != null && threadSlickClient.get() != null) {
-            threadSlickClient.remove();
-        }
-        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
-            threadSlickResultLogger.remove();
-        }
-        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
-            threadSlickFileAttacher.remove();
-        }
+        cleanupThreadLocal();
     }
 
     @Override
     public void onTestFailure(ITestResult testResult) {
         String status = BROKEN_TEST;
 
-        if(isUsingSlick()) {
+        if(isUsingSlick() && threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
             Throwable cause = testResult.getThrowable();
             if (null != cause) {
                 if (cause.toString().contains("java.lang.AssertionError")) {
@@ -117,28 +111,20 @@ public class SlickResult implements IResultListener2  {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
-                    System.err.println("!! ERROR: Unable to pass result !!");
+                    System.err.println("!! ERROR: Unable to fail result !!");
                 }
             }
             threadSlickResultLogger.get().flushLogs();
         }
-        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
-            threadCurrentResultId.remove();
+        else {
+            logger.debug("Not logging to slick");
         }
-        if (threadSlickClient != null && threadSlickClient.get() != null) {
-            threadSlickClient.remove();
-        }
-        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
-            threadSlickResultLogger.remove();
-        }
-        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
-            threadSlickFileAttacher.remove();
-        }
+        cleanupThreadLocal();
     }
 
     @Override
     public void onTestSkipped(ITestResult testResult) {
-        if(isUsingSlick()) {
+        if(isUsingSlick() && threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
             threadSlickResultLogger.get().debug("Test was skipped!");
             Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
@@ -150,23 +136,15 @@ public class SlickResult implements IResultListener2  {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
                     e.printStackTrace();
-                    System.err.println("!! ERROR: Unable to pass result !!");
+                    System.err.println("!! ERROR: Unable to skip result !!");
                 }
             }
             threadSlickResultLogger.get().flushLogs();
         }
-        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
-            threadCurrentResultId.remove();
+        else {
+            logger.debug("Not logging to slick");
         }
-        if (threadSlickClient != null && threadSlickClient.get() != null) {
-            threadSlickClient.remove();
-        }
-        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
-            threadSlickResultLogger.remove();
-        }
-        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
-            threadSlickFileAttacher.remove();
-        }
+        cleanupThreadLocal();
     }
 
     public static SlickClient getThreadSlickClient() {
@@ -182,6 +160,21 @@ public class SlickResult implements IResultListener2  {
         }
 
         return slickClient;
+    }
+
+    private void cleanupThreadLocal() {
+        if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
+            threadCurrentResultId.remove();
+        }
+        if (threadSlickClient != null && threadSlickClient.get() != null) {
+            threadSlickClient.remove();
+        }
+        if (threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
+            threadSlickResultLogger.remove();
+        }
+        if (threadSlickFileAttacher != null && threadSlickFileAttacher.get() != null) {
+            threadSlickFileAttacher.remove();
+        }
     }
 
     public static SlickResultLogger getThreadSlickResultLogger() {

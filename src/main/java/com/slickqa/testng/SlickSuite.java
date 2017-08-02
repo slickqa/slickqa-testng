@@ -1,6 +1,7 @@
 package com.slickqa.testng;
 
 import com.slickqa.testng.annotations.SlickMetaData;
+import org.apache.logging.log4j.LogManager;
 import org.testng.IInvokedMethod;
 import org.testng.ISuiteListener;
 import org.testng.ISuite;
@@ -18,6 +19,8 @@ import java.lang.annotation.Annotation;
 
 public class SlickSuite implements ISuiteListener {
 
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(SlickSuite.class);
+
     public final static SlickTestNGController controller = SlickTestNGControllerFactory.getControllerInstance();
 
     @Override
@@ -31,7 +34,7 @@ public class SlickSuite implements ISuiteListener {
             controller.initializeController();
             controller.createSuiteResults(suite.getAllMethods());
         } catch (Exception e) {
-            System.out.println("exception: " + e.getMessage());
+            logger.error("exception: " + e.getMessage());
         }
     }
 
