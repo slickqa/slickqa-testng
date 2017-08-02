@@ -1,37 +1,51 @@
 package com.slickqa.testng;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.core.AppenderBase;
-import ch.qos.logback.classic.spi.ILoggingEvent;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
+import org.apache.logging.log4j.core.config.plugins.PluginElement;
+import org.apache.logging.log4j.core.config.plugins.PluginFactory;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.Serializable;
 
-/**
- * Created by slambson on 7/26/17.
- */
-public class SlickLogAppender extends AppenderBase<ILoggingEvent> {
+@Plugin(name = "SlickLogAppender", category = "Core", elementType = "apender", printObject = true)
+public class SlickLogAppender extends AbstractAppender {
 
-    public void append(ILoggingEvent event) {
+    protected SlickLogAppender(String name, Filter filter, Layout<? extends Serializable> layout) {
+        super(name, filter, layout);
+    }
+
+    @Override
+    public void append(LogEvent event) {
+        System.out.println("message: " + event.getMessage().toString());
         try {
             SlickResultLogger slickResultLogger = SlickResult.getThreadSlickResultLogger();
             if (slickResultLogger != null) {
                 if (event.getLevel() == Level.DEBUG) {
                     slickResultLogger.setLoggerName(event.getLoggerName());
-                    slickResultLogger.debug(event.getMessage());
+                    slickResultLogger.debug(event.getMessage().getFormattedMessage());
                 }
                 if (event.getLevel() == Level.INFO) {
                     slickResultLogger.setLoggerName(event.getLoggerName());
-                    slickResultLogger.info(event.getMessage());
+                    slickResultLogger.info(event.getMessage().getFormattedMessage());
                 }
                 if (event.getLevel() == Level.WARN) {
                     slickResultLogger.setLoggerName(event.getLoggerName());
-                    slickResultLogger.warn(event.getMessage());
+                    slickResultLogger.warn(event.getMessage().getFormattedMessage());
                 }
                 if (event.getLevel() == Level.ERROR) {
                     slickResultLogger.setLoggerName(event.getLoggerName());
-                    slickResultLogger.error(event.getMessage());
+                    slickResultLogger.error(event.getMessage().getFormattedMessage());
                 }
                 if (event.getLevel() == Level.TRACE) {
                     slickResultLogger.setLoggerName(event.getLoggerName());
-                    slickResultLogger.trace(event.getMessage());
+                    slickResultLogger.trace(event.getMessage().getFormattedMessage());
                 }
                 slickResultLogger.flushLogs();
                 slickResultLogger.setLoggerName(SlickResultLogger.defaultLoggerName);
@@ -40,5 +54,20 @@ public class SlickLogAppender extends AppenderBase<ILoggingEvent> {
             System.out.println("!! ERROR: post logger message to Slick: " + e.getMessage());
             System.out.println(e.getStackTrace().toString());
         }
+    }
+
+    @PluginFactory
+    public static SlickLogAppender createAppender(@PluginAttribute("name") String name,
+                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
+                                                  @PluginElement("Filter") final Filter filter,
+                                                  @PluginAttribute("otherAttribute") String otherAttribute) {
+        if (name == null) {
+            LOGGER.error("No name provided for TestAppender");
+            return null;
+        }
+        if (layout == null) {
+            layout = PatternLayout.createDefaultLayout();
+        }
+        return new SlickLogAppender(name, filter, layout);
     }
 }

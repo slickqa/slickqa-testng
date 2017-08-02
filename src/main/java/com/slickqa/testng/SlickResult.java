@@ -176,6 +176,11 @@ public class SlickResult implements IResultListener2  {
         } catch (NullPointerException e) {
             slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
         }
+
+        if (slickClient == null) {
+            slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
+        }
+
         return slickClient;
     }
 
