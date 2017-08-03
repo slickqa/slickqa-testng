@@ -38,11 +38,12 @@ public class SlickResult implements IResultListener2  {
     @Override
     public void onTestStart(ITestResult testResult) {
         Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
+        String testPlanName = testResult.getMethod().getXmlTest().getName();
         SlickClient slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
         threadSlickClient.set(slickClient);
         if(isUsingSlick()) {
             if (testMethod.getAnnotation(SlickMetaData.class) != null) {
-                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod);
+                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod, testPlanName);
                 threadCurrentResultId.set(result.getId());
                 threadSlickResultLogger.set(new SlickResultLogger(threadCurrentResultId.get()));
                 threadSlickFileAttacher.set(new SlickFileAttacher(threadCurrentResultId.get()));

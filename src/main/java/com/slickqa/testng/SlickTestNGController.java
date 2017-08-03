@@ -32,9 +32,10 @@ public class SlickTestNGController {
     public static boolean usingSlick;
     protected SlickConfigurationSource configurationSource;
     protected Project project;
-    protected Testrun testrun;
 
     protected Map<String, Result> results;
+
+    protected Map<String, String> testRunIds = new HashMap<String, String>();
 
     public static String baseURL;
 
@@ -63,7 +64,7 @@ public class SlickTestNGController {
         return baseURL;
     }
 
-    public void initializeController() throws SlickError {
+    public void initializeController(List<String> testPlanNames) throws SlickError {
         String projectName = configurationSource.getConfigurationEntry(ConfigurationNames.PROJECT_NAME, null);
         if(baseURL != null && projectName != null) {
             try {
@@ -111,10 +112,13 @@ public class SlickTestNGController {
                     buildReference.setName(buildName);
                 }
 
-                testrunName = configurationSource.getConfigurationEntry(ConfigurationNames.TESTRUN_NAME, null);
-
-                String testplanName = configurationSource.getConfigurationEntry(ConfigurationNames.TESTPLAN_NAME, null);
-                if(testplanName != null) {
+                if (testPlanNames.size() == 0) {
+                    String paramTestPlanName = configurationSource.getConfigurationEntry(ConfigurationNames.TESTPLAN_NAME, null);
+                    if(paramTestPlanName != null) {
+                        testPlanNames.add(paramTestPlanName);
+                    }
+                }
+                for (String testplanName : testPlanNames) {
                     HashMap<String, String> query = new HashMap<>();
                     query.put("project.id", project.getId());
                     query.put("name", testplanName);
@@ -134,18 +138,18 @@ public class SlickTestNGController {
                         tplan = slickClient.testplans().create(tplan);
                     }
                     testplanId = tplan.getId();
-                    if(testrunName == null) {
-                        testrunName = tplan.getName();
+
+                    Testrun testrun = new Testrun();
+                    testrun.setName(testplanName);
+                    testrun.setTestplanId(testplanId);
+                    testrun.setProject(projectReference);
+                    testrun.setRelease(releaseReference);
+                    testrun.setBuild(buildReference);
+                    testrun = slickClient.testruns().create(testrun);
+                    if (!testRunIds.containsKey(testplanName)) {
+                        testRunIds.put(testplanName, testrun.getId());
                     }
                 }
-
-                testrun = new Testrun();
-                testrun.setName(testrunName);
-                testrun.setTestplanId(testplanId);
-                testrun.setProject(projectReference);
-                testrun.setRelease(releaseReference);
-                testrun.setBuild(buildReference);
-                testrun = slickClient.testruns().create(testrun);
 
                 usingSlick = true;
             } catch (SlickError e) {
@@ -157,10 +161,6 @@ public class SlickTestNGController {
 
     public static boolean isUsingSlick() {
         return usingSlick;
-    }
-
-    public Testrun getTestrun() {
-        return testrun;
     }
 
     public SlickClient getSlickClient() {
@@ -194,7 +194,7 @@ public class SlickTestNGController {
         return automationId;
     }
 
-    public void addResultFor(Method testMethod) throws SlickError {
+    public void addResultFor(Method testMethod, String testPlanName) throws SlickError {
         if (isUsingSlick()) {
             SlickMetaData metaData = testMethod.getAnnotation(SlickMetaData.class);
             if (metaData != null) {
@@ -320,8 +320,11 @@ public class SlickTestNGController {
                 testReference.setAutomationTool(testcase.getAutomationTool());
 
                 TestrunReference testrunReference = new TestrunReference();
-                testrunReference.setName(testrun.getName());
-                testrunReference.setTestrunId(testrun.getId());
+                testrunReference.setName(testPlanName);
+                testrunReference.setTestrunId(testRunIds.get(testPlanName));
+                //testrunReference.setName(testrun.getName());
+                //testrunReference.setTestrunId(testrun.getId());
+
 
                 Result result = new Result();
                 result.setProject(projectReference);
@@ -357,12 +360,12 @@ public class SlickTestNGController {
         }
     }
 
-    public Result getOrCreateResultFor(Method testMethod) {
+    public Result getOrCreateResultFor(Method testMethod, String testPlanName) {
         if(isUsingSlick()) {
             Result result = getResultFor(testMethod);
             if(result == null) {
                 try {
-                    addResultFor(testMethod);
+                    addResultFor(testMethod, testPlanName);
                     return getResultFor(testMethod);
                 } catch (SlickError e) {
                     e.printStackTrace();
@@ -382,8 +385,9 @@ public class SlickTestNGController {
         if(isUsingSlick()) {
             for(ITestNGMethod testNGMethod : testNGMethods) {
                 testNGMethod.getConstructorOrMethod().getMethod();
+                XmlTest xmlTest = testNGMethod.getXmlTest();;
                 try {
-                    addResultFor(testNGMethod.getConstructorOrMethod().getMethod());
+                    addResultFor(testNGMethod.getConstructorOrMethod().getMethod(), xmlTest.getName() );
                 } catch (Exception e) {
                     System.err.println("exception: " + e.getMessage());
                 }
