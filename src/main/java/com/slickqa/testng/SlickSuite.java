@@ -10,6 +10,7 @@ import org.testng.internal.ClassHelper;
 import org.testng.xml.XmlTest;
 import org.testng.xml.XmlClass;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.Iterator;
@@ -31,7 +32,19 @@ public class SlickSuite implements ISuiteListener {
     @Override
     public void onStart(ISuite suite) {
         try {
-            controller.initializeController();
+            List<ITestNGMethod> testNGMethods = suite.getAllMethods();
+            List<String> testPlanNames = new ArrayList<String>();
+            if (testNGMethods != null) {
+                for (ITestNGMethod method : testNGMethods) {
+                    String testPlan = method.getXmlTest().getName();
+                    if (testPlan != null) {
+                        if (!testPlanNames.contains(testPlan)) {
+                            testPlanNames.add(testPlan);
+                        }
+                    }
+                }
+            }
+            controller.initializeController(testPlanNames);
             controller.createSuiteResults(suite.getAllMethods());
         } catch (Exception e) {
             logger.error("exception: " + e.getMessage());
