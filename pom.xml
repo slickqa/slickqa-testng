@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.slickqa</groupId>
     <artifactId>slickqa-testng</artifactId>
-    <version>1.0.0-5</version>
+    <version>1.0.0-6</version>
     <name>Slick TestNG Connector</name>
     <description>TestNG connector for the SlickQA results database.</description>
     <licenses>
@@ -169,26 +169,6 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson-version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.slf4j</groupId>-->
-            <!--<artifactId>slf4j-api</artifactId>-->
-            <!--<version>${slf4j-version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.slf4j</groupId>-->
-            <!--<artifactId>slf4j-ext</artifactId>-->
-            <!--<version>${slf4j-version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>ch.qos.logback</groupId>-->
-            <!--<artifactId>logback-classic</artifactId>-->
-            <!--<version>${logback-version}</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>org.apache.logging.log4j</groupId>-->
-            <!--<artifactId>log4j-core</artifactId>-->
-            <!--<version>${log4j-version}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
@@ -199,11 +179,6 @@
             <artifactId>log4j-core</artifactId>
             <version>${log4j-version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.apache.logging.log4j</groupId>-->
-            <!--<artifactId>log4j</artifactId>-->
-            <!--<version>${log4j-version}</version>-->
-        <!--</dependency>-->
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -211,7 +186,6 @@
         <jmockit-version>1.33</jmockit-version>
         <jackson-version>2.9.0.pr4</jackson-version>
         <slf4j-version>1.7.25</slf4j-version>
-        <!--<logback-version>1.2.3</logback-version>-->
         <log4j-version>2.8.2</log4j-version>
     </properties>
 </project>

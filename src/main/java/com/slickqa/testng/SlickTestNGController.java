@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.slickqa.client.SlickClient;
-import com.slickqa.client.apiparts.*;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.JsonUtil;
 import com.slickqa.client.impl.SlickClientImpl;
@@ -13,13 +12,8 @@ import com.slickqa.client.model.*;
 import com.slickqa.client.model.Step;
 import com.slickqa.testng.annotations.*;
 import org.testng.ITestNGMethod;
-import org.testng.annotations.Test;
-import org.testng.internal.ClassHelper;
-import org.testng.xml.XmlClass;
 import org.testng.xml.XmlTest;
 
-import javax.ws.rs.container.Suspended;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -39,11 +33,23 @@ public class SlickTestNGController {
 
     public static String baseURL;
 
+    private String DEFAULTED_COMMAND_LINE_TEST = "Command line test";
+    public String javaParamTestPlan;
+
     public SlickTestNGController() {
         usingSlick = false;
         configurationSource = initializeConfigurationSource();
         initializeBaseURL();
         results = new HashMap<>();
+    }
+
+    private void setJavaParamTestPlan(String javaParamTestPlan) {
+        if (javaParamTestPlan == null) {
+            this.javaParamTestPlan = "DEFAULT_TESTPLAN";
+        }
+        else {
+            this.javaParamTestPlan = javaParamTestPlan;
+        }
     }
 
     /**
@@ -112,13 +118,17 @@ public class SlickTestNGController {
                     buildReference.setName(buildName);
                 }
 
+                String paramTestPlanName = configurationSource.getConfigurationEntry(ConfigurationNames.TESTPLAN_NAME, null);
+                setJavaParamTestPlan(paramTestPlanName);
+
                 if (testPlanNames.size() == 0) {
-                    String paramTestPlanName = configurationSource.getConfigurationEntry(ConfigurationNames.TESTPLAN_NAME, null);
-                    if(paramTestPlanName != null) {
-                        testPlanNames.add(paramTestPlanName);
-                    }
+                    testPlanNames.add(javaParamTestPlan);
                 }
                 for (String testplanName : testPlanNames) {
+                    if (testplanName.equals(DEFAULTED_COMMAND_LINE_TEST)) {
+                        // use the command line option if provided
+                        testplanName = javaParamTestPlan;
+                    }
                     HashMap<String, String> query = new HashMap<>();
                     query.put("project.id", project.getId());
                     query.put("name", testplanName);
@@ -320,10 +330,12 @@ public class SlickTestNGController {
                 testReference.setAutomationTool(testcase.getAutomationTool());
 
                 TestrunReference testrunReference = new TestrunReference();
+                if (testPlanName.equals(DEFAULTED_COMMAND_LINE_TEST)) {
+                    testPlanName = javaParamTestPlan;
+                }
+
                 testrunReference.setName(testPlanName);
                 testrunReference.setTestrunId(testRunIds.get(testPlanName));
-                //testrunReference.setName(testrun.getName());
-                //testrunReference.setTestrunId(testrun.getId());
 
 
                 Result result = new Result();
