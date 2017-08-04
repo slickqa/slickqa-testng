@@ -1,7 +1,5 @@
 package com.slickqa.testng;
 
-import com.slickqa.client.errors.SlickError;
-import org.testng.ITestContext;
 import org.testng.annotations.*;
 
 /**
@@ -13,6 +11,11 @@ import org.testng.annotations.*;
  */
 @Listeners({SlickSuite.class, SlickResult.class})
 public class SlickBaseTest {
+
+    @AfterMethod(alwaysRun = true)
+    public void cleanupSlickBaseTest() {
+        SlickResult.cleanupThreadLocal();
+    }
 
     public SlickResultLogger slickLog() {
         SlickResultLogger slickResultLogger;
