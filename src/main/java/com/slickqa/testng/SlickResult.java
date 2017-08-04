@@ -86,7 +86,7 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        cleanupThreadLocal();
+        //cleanupThreadLocal();
     }
 
     @Override
@@ -120,7 +120,7 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        cleanupThreadLocal();
+        //cleanupThreadLocal();
     }
 
     @Override
@@ -145,7 +145,7 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        cleanupThreadLocal();
+        //cleanupThreadLocal();
     }
 
     public static SlickClient getThreadSlickClient() {
@@ -163,7 +163,7 @@ public class SlickResult implements IResultListener2  {
         return slickClient;
     }
 
-    private void cleanupThreadLocal() {
+    public static void cleanupThreadLocal() {
         if (threadCurrentResultId != null && threadCurrentResultId.get() != null) {
             threadCurrentResultId.remove();
         }
