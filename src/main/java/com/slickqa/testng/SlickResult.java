@@ -108,6 +108,7 @@ public class SlickResult implements IResultListener2  {
                 update.setFinished(new Date());
                 update.setStatus(status);
                 update.setRunstatus(FINISHED);
+                update.setReason(cause.toString());
                 try {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
@@ -125,7 +126,16 @@ public class SlickResult implements IResultListener2  {
 
     @Override
     public void onTestSkipped(ITestResult testResult) {
-        if(isUsingSlick() && threadSlickResultLogger != null && threadSlickResultLogger.get() != null) {
+        if(isUsingSlick()) {
+            Throwable cause = testResult.getThrowable();
+            if (threadSlickResultLogger == null || threadSlickResultLogger.get() == null) {
+                Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
+                String testPlanName = testResult.getMethod().getXmlTest().getName();
+                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod, testPlanName);
+                threadCurrentResultId.set(result.getId());
+                threadSlickResultLogger.set(new SlickResultLogger(threadCurrentResultId.get()));
+                threadSlickFileAttacher.set(new SlickFileAttacher(threadCurrentResultId.get()));
+            }
             threadSlickResultLogger.get().debug("Test was skipped!");
             Result result = SlickSuite.getSlickTestNGController().getResultFor(testResult.getMethod().getConstructorOrMethod().getMethod());
             if (result != null) {
@@ -133,6 +143,7 @@ public class SlickResult implements IResultListener2  {
                 update.setFinished(new Date());
                 update.setStatus(SKIPPED);
                 update.setRunstatus(FINISHED);
+                update.setReason(cause.toString());
                 try {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
