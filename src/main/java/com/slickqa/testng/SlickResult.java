@@ -10,7 +10,8 @@ import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.internal.IResultListener2;
 import java.util.Arrays;
-
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Date;
 
@@ -19,7 +20,7 @@ public class SlickResult implements IResultListener2  {
     private static ThreadLocal<SlickClient> threadSlickClient;
     private static ThreadLocal<SlickResultLogger> threadSlickResultLogger;
     private static ThreadLocal<SlickFileAttacher> threadSlickFileAttacher;
-    private String RUNNING = "RUNNING";
+    public  static String RUNNING = "RUNNING";
     private String PASS = "PASS";
     private String FINISHED = "FINISHED";
     private String FAIL = "FAIL";
@@ -28,7 +29,7 @@ public class SlickResult implements IResultListener2  {
 
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(SlickResult.class);
 
-    public boolean isUsingSlick() {
+    public static boolean isUsingSlick() {
         if(SlickSuite.getSlickTestNGController() != null) {
             return SlickSuite.getSlickTestNGController().isUsingSlick();
         }
@@ -36,33 +37,12 @@ public class SlickResult implements IResultListener2  {
     }
 
     @Override
-    public void onTestStart(ITestResult testResult) {
-        Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
-        String testPlanName = testResult.getMethod().getXmlTest().getName();
-        SlickClient slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
-        threadSlickClient.set(slickClient);
-        if(isUsingSlick()) {
-            if (testMethod.getAnnotation(SlickMetaData.class) != null) {
-                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod, testPlanName);
-                threadCurrentResultId.set(result.getId());
-                threadSlickResultLogger.set(new SlickResultLogger(threadCurrentResultId.get()));
-                threadSlickFileAttacher.set(new SlickFileAttacher(threadCurrentResultId.get()));
-                Result update = new Result();
-                update.setStarted(new Date());
-                update.setReason("");
-                update.setRunstatus(RUNNING);
-                try {
-                    result = SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
-                } catch (SlickError e) {
-                    e.printStackTrace();
-                    System.err.println("!! ERROR: Unable to set result to starting. !!");
-                }
-            }
-        }
+    public void beforeConfiguration(ITestResult testResult) {
     }
 
     @Override
-    public void beforeConfiguration(ITestResult testResult) {
+    public void onTestStart(ITestResult testResult) {
+
     }
 
     @Override
@@ -86,7 +66,7 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        //cleanupThreadLocal();
+        cleanupThreadLocal();
     }
 
     @Override
@@ -108,7 +88,9 @@ public class SlickResult implements IResultListener2  {
                 update.setFinished(new Date());
                 update.setStatus(status);
                 update.setRunstatus(FINISHED);
-                update.setReason(cause.toString());
+                StringWriter sw = new StringWriter();
+                cause.printStackTrace(new PrintWriter(sw));
+                update.setReason(sw.toString());
                 try {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
@@ -121,14 +103,14 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        //cleanupThreadLocal();
+        cleanupThreadLocal();
     }
 
     @Override
     public void onTestSkipped(ITestResult testResult) {
-        if(isUsingSlick()) {
+        if(isUsingSlick() && threadSlickResultLogger != null) {
             Throwable cause = testResult.getThrowable();
-            if (threadSlickResultLogger == null || threadSlickResultLogger.get() == null) {
+            if (threadSlickResultLogger.get() == null) {
                 Method testMethod = testResult.getMethod().getConstructorOrMethod().getMethod();
                 String testPlanName = testResult.getMethod().getXmlTest().getName();
                 Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod, testPlanName);
@@ -143,7 +125,9 @@ public class SlickResult implements IResultListener2  {
                 update.setFinished(new Date());
                 update.setStatus(SKIPPED);
                 update.setRunstatus(FINISHED);
-                update.setReason(cause.toString());
+                StringWriter sw = new StringWriter();
+                cause.printStackTrace(new PrintWriter(sw));
+                update.setReason(sw.toString());
                 try {
                     SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
                 } catch (SlickError e) {
@@ -156,7 +140,7 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        //cleanupThreadLocal();
+        cleanupThreadLocal();
     }
 
     public static SlickClient getThreadSlickClient() {
@@ -231,5 +215,21 @@ public class SlickResult implements IResultListener2  {
     public void onConfigurationSkip(ITestResult testResult) {
         // TODO Auto-generated method stub
 
+    }
+
+    public static void setThreadSlickClient(SlickClient slickClient) {
+        threadSlickClient.set(slickClient);
+    }
+
+    public static void setThreadCurrentResultId(String resultId) {
+        threadCurrentResultId.set(resultId);
+    }
+
+    public static void setThreadSlickResultLogger(SlickResultLogger slickResultLogger) {
+        threadSlickResultLogger.set(slickResultLogger);
+    }
+
+    public static void setThreadSlickFileAttacher(SlickFileAttacher slickFileAttacher) {
+        threadSlickFileAttacher.set(slickFileAttacher);
     }
 }

@@ -1,6 +1,16 @@
 package com.slickqa.testng;
 
+import com.slickqa.client.SlickClient;
+import com.slickqa.client.errors.SlickError;
+import com.slickqa.client.impl.SlickClientImpl;
+import com.slickqa.client.model.Result;
+import com.slickqa.testng.annotations.SlickMetaData;
+import org.testng.ITestContext;
+import org.testng.ITestResult;
 import org.testng.annotations.*;
+
+import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  * Base
@@ -12,9 +22,29 @@ import org.testng.annotations.*;
 @Listeners({SlickSuite.class, SlickResult.class})
 public class SlickBaseTest {
 
-    @AfterMethod(alwaysRun = true)
-    public void cleanupSlickBaseTest() {
-        SlickResult.cleanupThreadLocal();
+    @BeforeMethod(alwaysRun = true)
+    public void setupSlickThreads(Method testMethod, ITestContext testContext) {
+        String testPlanName = testContext.getCurrentXmlTest().getName();
+        SlickClient slickClient = new SlickClientImpl(SlickSuite.getSlickTestNGController().getBaseURL());
+        SlickResult.setThreadSlickClient(slickClient);
+        if(SlickResult.isUsingSlick()) {
+            if (testMethod.getAnnotation(SlickMetaData.class) != null) {
+                Result result = SlickSuite.getSlickTestNGController().getOrCreateResultFor(testMethod, testPlanName);
+                SlickResult.setThreadCurrentResultId(result.getId());
+                SlickResult.setThreadSlickResultLogger(new SlickResultLogger(result.getId()));
+                SlickResult.setThreadSlickFileAttacher(new SlickFileAttacher((result.getId())));
+                Result update = new Result();
+                update.setStarted(new Date());
+                update.setReason("");
+                update.setRunstatus(SlickResult.RUNNING);
+                try {
+                    SlickSuite.getSlickTestNGController().updateResultFor(result.getId(), update);
+                } catch (SlickError e) {
+                    e.printStackTrace();
+                    System.err.println("!! ERROR: Unable to set result to starting. !!");
+                }
+            }
+        }
     }
 
     public SlickResultLogger slickLog() {
