@@ -6,7 +6,6 @@ import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.Result;
 import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestContext;
-import org.testng.ITestResult;
 import org.testng.annotations.*;
 
 import java.lang.reflect.Method;

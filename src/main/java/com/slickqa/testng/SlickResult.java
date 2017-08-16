@@ -4,7 +4,6 @@ import com.slickqa.client.SlickClient;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.Result;
-import com.slickqa.testng.annotations.SlickMetaData;
 import org.apache.logging.log4j.LogManager;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
