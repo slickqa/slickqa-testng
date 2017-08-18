@@ -65,7 +65,6 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        cleanupThreadLocal();
     }
 
     @Override
@@ -102,7 +101,6 @@ public class SlickResult implements IResultListener2  {
         else {
             logger.debug("Not logging to slick");
         }
-        cleanupThreadLocal();
     }
 
     @Override

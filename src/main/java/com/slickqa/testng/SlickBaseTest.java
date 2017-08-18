@@ -46,6 +46,11 @@ public class SlickBaseTest {
         }
     }
 
+    @AfterMethod(alwaysRun = true)
+    public void cleanupSlickThreads() {
+        SlickResult.cleanupThreadLocal();
+    }
+
     public SlickResultLogger slickLog() {
         SlickResultLogger slickResultLogger;
         if (SlickResult.getThreadSlickResultLogger() != null) {
