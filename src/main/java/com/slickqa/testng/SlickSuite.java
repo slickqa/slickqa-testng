@@ -26,7 +26,7 @@ public class SlickSuite implements ISuiteListener {
 
     @Override
     public void onFinish(ISuite suite) {
-        // TODO Auto-generated method stub
+        controller.resetController();
     }
 
     @Override
