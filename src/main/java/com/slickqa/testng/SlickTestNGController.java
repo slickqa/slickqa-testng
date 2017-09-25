@@ -29,7 +29,7 @@ public class SlickTestNGController {
 
     protected Map<String, Result> results;
 
-    protected Map<String, String> testRunIds = new HashMap<String, String>();
+    protected Map<String, String> testRunIds;
 
     public static String baseURL;
 
@@ -40,6 +40,7 @@ public class SlickTestNGController {
         usingSlick = false;
         configurationSource = initializeConfigurationSource();
         initializeBaseURL();
+        testRunIds = new HashMap<String, String>();
         results = new HashMap<>();
     }
 
@@ -68,6 +69,11 @@ public class SlickTestNGController {
 
     public String getBaseURL() {
         return baseURL;
+    }
+
+    public void resetController() {
+        testRunIds = new HashMap<String, String>();
+        results = new HashMap<>();
     }
 
     public void initializeController(List<String> testPlanNames) throws SlickError {
