@@ -51,8 +51,6 @@ public class SlickLogAppender extends AbstractAppender {
                 slickResultLogger.setLoggerName(SlickResultLogger.defaultLoggerName);
             }
         } catch (Exception e) {
-            System.out.println("!! ERROR: post logger message to Slick: " + e.getMessage());
-            System.out.println(e.getStackTrace().toString());
         }
     }
 
