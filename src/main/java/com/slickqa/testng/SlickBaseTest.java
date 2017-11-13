@@ -50,7 +50,7 @@ public class SlickBaseTest {
         SlickResult.cleanupThreadLocal();
     }
 
-    public SlickResultLogger slickLog() {
+    public static SlickResultLogger slickLog() {
         SlickResultLogger slickResultLogger;
         if (SlickResult.getThreadSlickResultLogger() != null) {
             slickResultLogger = SlickResult.getThreadSlickResultLogger();
