@@ -18,7 +18,6 @@ import java.util.Date;
  *
  * @author Created by Sharon Lambson on 7/14/17.
  */
-@Listeners({SlickSuite.class, SlickResult.class})
 public class SlickBaseTest {
 
     @BeforeMethod(alwaysRun = true)
@@ -62,7 +61,7 @@ public class SlickBaseTest {
         return slickResultLogger;
     }
 
-    public SlickFileAttacher slickFileAttach() {
+    public static SlickFileAttacher slickFileAttach() {
         SlickFileAttacher slickFileAttacher;
         if (SlickResult.getThreadSlickFileAttacher() != null) {
             slickFileAttacher =  SlickResult.getThreadSlickFileAttacher();
