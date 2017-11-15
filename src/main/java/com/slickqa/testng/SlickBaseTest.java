@@ -50,7 +50,7 @@ public class SlickBaseTest {
         SlickResult.cleanupThreadLocal();
     }
 
-    public SlickResultLogger slickLog() {
+    public static SlickResultLogger slickLog() {
         SlickResultLogger slickResultLogger;
         if (SlickResult.getThreadSlickResultLogger() != null) {
             slickResultLogger = SlickResult.getThreadSlickResultLogger();
@@ -61,7 +61,7 @@ public class SlickBaseTest {
         return slickResultLogger;
     }
 
-    public SlickFileAttacher slickFileAttach() {
+    public static SlickFileAttacher slickFileAttach() {
         SlickFileAttacher slickFileAttacher;
         if (SlickResult.getThreadSlickFileAttacher() != null) {
             slickFileAttacher =  SlickResult.getThreadSlickFileAttacher();
