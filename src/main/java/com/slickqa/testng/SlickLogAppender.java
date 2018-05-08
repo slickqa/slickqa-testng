@@ -53,38 +53,7 @@ public class SlickLogAppender extends AbstractAppender {
         } catch (Exception e) {
         }
     }
-
-    public void appendWithLoggerName(String loggerName, LogEvent event) {
-        try {
-            SlickResultLogger slickResultLogger = SlickResult.getThreadSlickResultLogger();
-            if (slickResultLogger != null) {
-                if (event.getLevel() == Level.DEBUG) {
-                    slickResultLogger.setLoggerName(loggerName);
-                    slickResultLogger.debug(event.getMessage().getFormattedMessage());
-                }
-                if (event.getLevel() == Level.INFO) {
-                    slickResultLogger.setLoggerName(loggerName);
-                    slickResultLogger.info(event.getMessage().getFormattedMessage());
-                }
-                if (event.getLevel() == Level.WARN) {
-                    slickResultLogger.setLoggerName(loggerName);
-                    slickResultLogger.warn(event.getMessage().getFormattedMessage());
-                }
-                if (event.getLevel() == Level.ERROR) {
-                    slickResultLogger.setLoggerName(loggerName);
-                    slickResultLogger.error(event.getMessage().getFormattedMessage());
-                }
-                if (event.getLevel() == Level.TRACE) {
-                    slickResultLogger.setLoggerName(loggerName);
-                    slickResultLogger.trace(event.getMessage().getFormattedMessage());
-                }
-                slickResultLogger.flushLogs();
-                slickResultLogger.setLoggerName(loggerName);
-            }
-        } catch (Exception e) {
-        }
-    }
-
+    
     @PluginFactory
     public static SlickLogAppender createAppender(@PluginAttribute("name") String name,
                                                   @PluginElement("Layout") Layout<? extends Serializable> layout,
