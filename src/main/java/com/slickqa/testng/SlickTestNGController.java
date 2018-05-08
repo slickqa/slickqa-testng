@@ -237,6 +237,7 @@ public class SlickTestNGController {
                     testcase = new Testcase();
                     testcase.setName(metaData.title());
                     testcase.setProject(projectReference);
+                    testcase.setAuthor(metaData.author());
                     testcase = getSlickClient().testcases().create(testcase);
                 }
 

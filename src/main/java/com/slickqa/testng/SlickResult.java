@@ -3,7 +3,9 @@ package com.slickqa.testng;
 import com.slickqa.client.SlickClient;
 import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.SlickClientImpl;
+import com.slickqa.client.model.LogEntry;
 import com.slickqa.client.model.Result;
+import com.slickqa.testng.annotations.SlickMetaData;
 import org.apache.logging.log4j.LogManager;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
@@ -95,6 +97,23 @@ public class SlickResult implements IResultListener2  {
                     e.printStackTrace();
                     System.err.println("!! ERROR: Unable to fail result !!");
                 }
+            }
+            SlickMetaData metaData = testResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(SlickMetaData.class);
+            if(metaData != null && metaData.triageNote() != null && !"".equals(metaData.triageNote())) {
+                threadSlickResultLogger.get().debug(metaData.triageNote());
+
+                String triageNote = metaData.triageNote();
+                LogEntry triageNoteEntry = new LogEntry();
+                triageNoteEntry.setLoggerName("slick.note");
+                triageNoteEntry.setLevel("WARN");
+                triageNoteEntry.setEntryTime(new Date());
+                triageNoteEntry.setMessage(metaData.triageNote());
+
+                SlickResultLogger triageLogger = new SlickResultLogger(threadCurrentResultId.get());
+                triageLogger.setLoggerName("slick.note");
+                triageLogger.addLogEntry(triageNoteEntry);
+                triageLogger.flushLogs();
+
             }
             threadSlickResultLogger.get().flushLogs();
         }

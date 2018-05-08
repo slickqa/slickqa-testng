@@ -53,7 +53,7 @@ public class SlickLogAppender extends AbstractAppender {
         } catch (Exception e) {
         }
     }
-
+    
     @PluginFactory
     public static SlickLogAppender createAppender(@PluginAttribute("name") String name,
                                                   @PluginElement("Layout") Layout<? extends Serializable> layout,
