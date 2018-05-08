@@ -100,9 +100,20 @@ public class SlickResult implements IResultListener2  {
             }
             SlickMetaData metaData = testResult.getMethod().getConstructorOrMethod().getMethod().getAnnotation(SlickMetaData.class);
             if(metaData != null && metaData.triageNote() != null && !"".equals(metaData.triageNote())) {
+                threadSlickResultLogger.get().debug(metaData.triageNote());
+
                 String triageNote = metaData.triageNote();
-                LogEntry logEntry = new LogEntry();
-                threadSlickResultLogger.get().
+                LogEntry triageNoteEntry = new LogEntry();
+                triageNoteEntry.setLoggerName("slick.note");
+                triageNoteEntry.setLevel("WARN");
+                triageNoteEntry.setEntryTime(new Date());
+                triageNoteEntry.setMessage(metaData.triageNote());
+
+                SlickResultLogger triageLogger = new SlickResultLogger(threadCurrentResultId.get());
+                triageLogger.setLoggerName("slick.note");
+                triageLogger.addLogEntry(triageNoteEntry);
+                triageLogger.flushLogs();
+
             }
             threadSlickResultLogger.get().flushLogs();
         }

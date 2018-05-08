@@ -22,4 +22,5 @@ public @interface SlickMetaData {
     String automationKey() default value;
     Step[] steps();
     String triageNote() default value;
+    String author() default value;
 }
