@@ -228,6 +228,11 @@ public class SlickTestNGController {
                     List<Testcase> testcases = getSlickClient().testcases(query).getList();
                     if (testcases != null && testcases.size() > 0) {
                         testcase = testcases.get(0);
+                        // update author if needed
+                        if(!metaData.author().equals("") && !metaData.author().equals(testcase.getAuthor())) {
+                            testcase.setAuthor(metaData.author());
+                            getSlickClient().testcase(testcase.getId()).update(testcase);
+                        }
                     }
                 } catch (SlickError e) {
                     // ignore
