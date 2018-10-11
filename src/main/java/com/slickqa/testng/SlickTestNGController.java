@@ -361,10 +361,14 @@ public class SlickTestNGController {
                     result.setRunstatus("SCHEDULED");
                     result.setReason("scheduled");
                     String environment = System.getProperty("environment", "NOT_SET");
-                    String branch = System.getProperty("branch", "NOT_SET");
+
                     HashMap<String, String> attributes = new HashMap<String, String>();
+                    for(String property : System.getProperties().stringPropertyNames()) {
+                        if(property.startsWith("attr.")) {
+                            attributes.put(property.substring(5), System.getProperty(property));
+                        }
+                    }
                     attributes.put("environment", environment);
-                    attributes.put("branch", branch);
                     result.setAttributes(attributes);
                 }
                 result = getSlickClient().results().create(result);
