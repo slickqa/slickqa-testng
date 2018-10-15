@@ -36,4 +36,11 @@ public class ConfigurationNames {
      * If both are missing then a combination of the date and time will be used.
      */
     static public final String TESTRUN_NAME = "slick.testrun";
+
+    /**
+     * The URL for the result to run.  If this is specified, and there is only one test being run, then a new result
+     * is not created.  Instead of creating a new result, the one specified in the URL is updated when the result
+     * finishes.
+     */
+    static public final String RESULT_URL = "slick.resulturl";
 }
