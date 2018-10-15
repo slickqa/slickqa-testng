@@ -16,6 +16,8 @@ import org.testng.xml.XmlTest;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Common class used by both the Tests and the Suite.  This class will initialize the slick client, create
@@ -32,6 +34,7 @@ public class SlickTestNGController {
     protected Map<String, String> testRunIds;
 
     public static String baseURL;
+    private String providedResultId;
 
     private String DEFAULTED_COMMAND_LINE_TEST = "Command line test";
     public String javaParamTestPlan;
@@ -42,6 +45,7 @@ public class SlickTestNGController {
         initializeBaseURL();
         testRunIds = new HashMap<String, String>();
         results = new HashMap<>();
+        providedResultId = null;
     }
 
     private void setJavaParamTestPlan(String javaParamTestPlan) {
@@ -78,17 +82,17 @@ public class SlickTestNGController {
 
     public void initializeController(List<String> testPlanNames) throws SlickError {
         String projectName = configurationSource.getConfigurationEntry(ConfigurationNames.PROJECT_NAME, null);
+        String resultUrl = configurationSource.getConfigurationEntry(ConfigurationNames.RESULT_URL, null);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        JsonUtil.mapper = mapper;
+
         if(baseURL != null && projectName != null) {
             try {
-
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                mapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-                mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
-                mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-                mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                JsonUtil.mapper = mapper;
-
                 if(!baseURL.endsWith("api") && !baseURL.endsWith("api/")) {
                     String add = "api/";
                     if(baseURL.endsWith("/")) {
@@ -161,6 +165,9 @@ public class SlickTestNGController {
                     testrun.setProject(projectReference);
                     testrun.setRelease(releaseReference);
                     testrun.setBuild(buildReference);
+                    if (System.getProperty("scheduleTests", "false").equalsIgnoreCase("true")) {
+                        testrun.getAttributes().put("scheduled", "true");
+                    }
                     testrun = slickClient.testruns().create(testrun);
                     if (!testRunIds.containsKey(testplanName)) {
                         testRunIds.put(testplanName, testrun.getId());
@@ -171,6 +178,16 @@ public class SlickTestNGController {
             } catch (SlickError e) {
                 System.out.println("!!!!!! Error occurred when initializing slick, no slick report will happen !!!!!!");
                 e.printStackTrace();
+            }
+        } else if(resultUrl != null) {
+            Pattern urlRegex = Pattern.compile("^(.*?)/results/([0-9a-f]+)$");
+            Matcher match = urlRegex.matcher(resultUrl);
+            if(match.matches()) {
+                baseURL = match.group(1);
+                providedResultId = match.group(2);
+                usingSlick = true;
+            } else {
+                System.out.println("!!!!!! Error URL doesn't match a slick URL " + resultUrl);
             }
         }
     }
@@ -211,7 +228,7 @@ public class SlickTestNGController {
     }
 
     public void addResultFor(Method testMethod, String testPlanName) throws SlickError {
-        if (isUsingSlick()) {
+        if (isUsingSlick() && providedResultId == null) {
             SlickMetaData metaData = testMethod.getAnnotation(SlickMetaData.class);
             if (metaData != null) {
                 String automationId = getAutomationId(testMethod);
@@ -367,6 +384,7 @@ public class SlickTestNGController {
                             attributes.put(property.substring(5), System.getProperty(property));
                         }
                     }
+                    attributes.put("scheduled", "true");
                     result.setAttributes(attributes);
                 }
                 result = getSlickClient().results().create(result);
@@ -397,9 +415,9 @@ public class SlickTestNGController {
     }
 
     public Result getOrCreateResultFor(Method testMethod, String testPlanName) {
-        if(isUsingSlick()) {
+        if(isUsingSlick() && providedResultId == null) {
             Result result = getResultFor(testMethod);
-            if(result == null) {
+            if (result == null) {
                 try {
                     addResultFor(testMethod, testPlanName);
                     return getResultFor(testMethod);
@@ -411,14 +429,19 @@ public class SlickTestNGController {
             } else {
                 return result;
             }
+        } else if(providedResultId != null) {
+            Result result = getResultFor(testMethod);
+            if (result == null) {
+                System.err.println("!!!! ERROR result id " + providedResultId + "'s automationId did not match test that ran.");
+            }
+            return result;
         } else {
             return null;
         }
     }
 
-
     public void createSuiteResults(List<ITestNGMethod> testNGMethods) {
-        if(isUsingSlick()) {
+        if(isUsingSlick() && providedResultId == null) {
             for(ITestNGMethod testNGMethod : testNGMethods) {
                 testNGMethod.getConstructorOrMethod().getMethod();
                 XmlTest xmlTest = testNGMethod.getXmlTest();;
@@ -427,6 +450,21 @@ public class SlickTestNGController {
                 } catch (Exception e) {
                     System.err.println("exception: " + e.getMessage());
                 }
+            }
+            if (System.getProperty("scheduleTests", "false").equalsIgnoreCase("true")) {
+                System.out.println("Tests scheduled, exiting...");
+                System.exit(0);
+            }
+
+        } else if(providedResultId != null && testNGMethods.size() == 1) {
+            try {
+                Result result = getSlickClient().result(providedResultId).get();
+                results.put(result.getTestcase().getAutomationId(), result);
+            } catch (SlickError slickError) {
+                System.err.println("!!!! ERROR getting slick result with id " + providedResultId +
+                        " from " + configurationSource.getConfigurationEntry(ConfigurationNames.RESULT_URL) + ": " +
+                        slickError.getMessage());
+                slickError.printStackTrace();
             }
         }
     }
