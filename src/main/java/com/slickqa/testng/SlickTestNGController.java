@@ -452,8 +452,10 @@ public class SlickTestNGController {
                 }
             }
             if (System.getProperty("scheduleTests", "false").equalsIgnoreCase("true")) {
-                System.out.println("Tests scheduled, exiting...");
-                System.exit(0);
+                if (System.getProperty("exitAfterSchedule", "true").equalsIgnoreCase("true")) {
+                    System.out.println("Tests scheduled, exiting...");
+                    System.exit(0);
+                }
             }
 
         } else if(providedResultId != null && testNGMethods.size() == 1) {
