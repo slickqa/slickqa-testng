@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.slickqa</groupId>
     <artifactId>slickqa-testng</artifactId>
-    <version>1.0.0-21</version>
+    <version>1.0.0-22</version>
     <name>Slick TestNG Connector</name>
     <description>TestNG connector for the SlickQA results database.</description>
     <licenses>
@@ -139,6 +139,16 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19</version>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>SonatypeReleases</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                </configuration>
             </plugin>
         </plugins>
     </build>
