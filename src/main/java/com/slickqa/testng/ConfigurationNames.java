@@ -43,4 +43,10 @@ public class ConfigurationNames {
      * finishes.
      */
     static public final String RESULT_URL = "slick.resulturl";
+
+    /**
+     * A property (defaulted to false) to enable sending logs to the result in slick.  If false (the default),
+     * then logs are printed out.
+     */
+    static public final String SLICK_ENABLE_LOGS = "slick.log";
 }
