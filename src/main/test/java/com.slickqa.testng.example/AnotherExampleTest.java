@@ -1,11 +1,8 @@
 package com.slickqa.testng.example;
 
+import com.slickqa.testng.SlickBaseTest;
 import com.slickqa.testng.annotations.SlickMetaData;
 import com.slickqa.testng.annotations.Step;
-import com.slickqa.testng.SlickBaseTest;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * An example Test

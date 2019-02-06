@@ -9,8 +9,7 @@ import com.slickqa.client.errors.SlickError;
 import com.slickqa.client.impl.JsonUtil;
 import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.*;
-import com.slickqa.client.model.Step;
-import com.slickqa.testng.annotations.*;
+import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestNGMethod;
 import org.testng.xml.XmlTest;
 

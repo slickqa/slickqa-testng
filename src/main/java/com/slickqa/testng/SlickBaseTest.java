@@ -6,7 +6,8 @@ import com.slickqa.client.impl.SlickClientImpl;
 import com.slickqa.client.model.Result;
 import com.slickqa.testng.annotations.SlickMetaData;
 import org.testng.ITestContext;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 
 import java.lang.reflect.Method;
 import java.util.Date;

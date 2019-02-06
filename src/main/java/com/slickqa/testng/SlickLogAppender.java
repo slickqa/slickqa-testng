@@ -10,8 +10,7 @@ import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.layout.PatternLayout;
-import java.util.ArrayList;
-import java.util.List;
+
 import java.io.Serializable;
 
 @Plugin(name = "SlickLogAppender", category = "Core", elementType = "apender", printObject = true)
