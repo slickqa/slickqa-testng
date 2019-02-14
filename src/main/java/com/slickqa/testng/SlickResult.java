@@ -10,10 +10,11 @@ import org.apache.logging.log4j.LogManager;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.internal.IResultListener2;
-import java.util.Arrays;
-import java.io.StringWriter;
+
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Date;
 
 public class SlickResult implements IResultListener2  {
