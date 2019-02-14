@@ -433,7 +433,7 @@ public class SlickTestNGController {
             Result result = getResultFor(testMethod);
             if (result == null) {
                 System.err.println("!!!! ERROR result id " + providedResultId + "'s automationId did not match test that ran.");
-		System.err.println("!!!! ERROR Test that ran was " + testMethod.getDeclaringClass().getName() + ":" +  testMethod.getName());
+                System.err.println("!!!! ERROR Test that ran was " + testMethod.getDeclaringClass().getName() + ":" +  testMethod.getName());
             }
             return result;
         } else {
