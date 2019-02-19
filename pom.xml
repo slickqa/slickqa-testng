@@ -32,6 +32,17 @@
             </roles>
             <timezone>America/Denver</timezone>
         </developer>
+        <developer>
+            <id>jasoncorbett</id>
+            <name>Jason Corbett</name>
+            <email>jasoncorbett@gmail.com</email>
+            <url>http://jcorbett.org</url>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>America/Denver</timezone>
+        </developer>
     </developers>
 
     <distributionManagement>
