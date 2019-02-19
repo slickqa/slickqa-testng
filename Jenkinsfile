@@ -35,7 +35,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                sh 'echo Deploying'
+                sh 'mvn -DskipTests clean install deploy -DautoReleaseAfterClose=true'
             }
         }
     }
