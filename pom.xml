@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.slickqa</groupId>
             <artifactId>slickqa-java-client</artifactId>
-            <version>1.0.3-0</version>
+            <version>1.0.3-6</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
