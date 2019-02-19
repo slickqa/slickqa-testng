@@ -35,6 +35,7 @@ pipeline {
                 branch 'master'
             }
             steps {
+                sh 'echo Deploying'
             }
         }
     }
