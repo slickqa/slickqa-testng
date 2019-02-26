@@ -74,7 +74,7 @@ public class SlickResultLogger implements SlickLogger {
 
     @Override
     public void addLogEntry(LogEntry entry) {
-        if(System.getProperty(ConfigurationNames.SLICK_ENABLE_LOGS, "false").equalsIgnoreCase("true")) {
+        if(System.getProperty(ConfigurationNames.SLICK_ENABLE_LOGS, "false").equalsIgnoreCase("true") || "slick.note".equals(entry.getLoggerName())) {
             if (SlickTestNGController.isUsingSlick() && !this.slickResultId.equals(SlickResultLogger.NOTDEFINED)) {
                 buffer.add(entry);
                 uploadLogsIfNecessary();
