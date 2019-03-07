@@ -157,7 +157,7 @@
         <dependency>
             <groupId>com.slickqa</groupId>
             <artifactId>slickqa-java-client</artifactId>
-            <version>1.0.3-0</version>
+            <version>1.0.3-6</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.testng/testng -->
         <dependency>
@@ -202,6 +202,6 @@
         <jmockit-version>1.45</jmockit-version>
         <jackson-version>2.9.8</jackson-version>
         <slf4j-version>1.7.25</slf4j-version>
-        <log4j-version>2.11.1</log4j-version>
+        <log4j-version>2.11.2</log4j-version>
     </properties>
 </project>
